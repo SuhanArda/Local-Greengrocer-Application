@@ -10,10 +10,10 @@ import java.util.Optional;
  * Data Access Object for Coupon operations.
  */
 public class CouponDAO {
-    private final DatabaseAdapter dbAdapter;
+    private final DBConnection dbAdapter;
 
     public CouponDAO() {
-        this.dbAdapter = DatabaseAdapter.getInstance();
+        this.dbAdapter = DBConnection.getInstance();
     }
 
     public Optional<Coupon> findByCode(String code) throws SQLException {

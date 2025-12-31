@@ -14,10 +14,10 @@ import java.util.Optional;
  * Data Access Object for Order operations.
  */
 public class OrderDAO {
-    private final DatabaseAdapter dbAdapter;
+    private final DBConnection dbAdapter;
 
     public OrderDAO() {
-        this.dbAdapter = DatabaseAdapter.getInstance();
+        this.dbAdapter = DBConnection.getInstance();
     }
 
     /**

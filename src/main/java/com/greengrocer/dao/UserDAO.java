@@ -14,12 +14,12 @@ import com.greengrocer.utils.Argon2Hasher;
  * Data Access Object for User operations.
  */
 public class UserDAO {
-    private final DatabaseAdapter dbAdapter;
+    private final DBConnection dbAdapter;
 
     private final Argon2Hasher hasher = new Argon2Hasher();
 
     public UserDAO() {
-        this.dbAdapter = DatabaseAdapter.getInstance();
+        this.dbAdapter = DBConnection.getInstance();
     }
 
     /**

@@ -10,10 +10,10 @@ import java.util.Optional;
  * Data Access Object for Message operations.
  */
 public class MessageDAO {
-    private final DatabaseAdapter dbAdapter;
+    private final DBConnection dbAdapter;
 
     public MessageDAO() {
-        this.dbAdapter = DatabaseAdapter.getInstance();
+        this.dbAdapter = DBConnection.getInstance();
     }
 
     public Optional<Message> findById(int id) throws SQLException {

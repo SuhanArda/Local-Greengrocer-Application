@@ -9,10 +9,10 @@ import java.util.List;
  * Data Access Object for CarrierRating operations.
  */
 public class CarrierRatingDAO {
-    private final DatabaseAdapter dbAdapter;
+    private final DBConnection dbAdapter;
 
     public CarrierRatingDAO() {
-        this.dbAdapter = DatabaseAdapter.getInstance();
+        this.dbAdapter = DBConnection.getInstance();
     }
 
     public List<CarrierRating> findByCarrier(int carrierId) {

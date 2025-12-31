@@ -12,10 +12,10 @@ import java.util.Optional;
  * Data Access Object for Product operations.
  */
 public class ProductDAO {
-    private final DatabaseAdapter dbAdapter;
+    private final DBConnection dbAdapter;
 
     public ProductDAO() {
-        this.dbAdapter = DatabaseAdapter.getInstance();
+        this.dbAdapter = DBConnection.getInstance();
     }
 
     /**
