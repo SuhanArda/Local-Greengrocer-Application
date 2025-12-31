@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import io.github.palexdev.materialfx.controls.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
+            fx:controller="com.greengrocer.controllers.LoginController"
+            prefWidth="960" prefHeight="540" styleClass="login-root">
+    
+    <center>
+        <VBox alignment="CENTER" spacing="10" maxWidth="400">
+            <padding>
+                <Insets top="10" right="20" bottom="10" left="20"/>
+            </padding>
+            
+            <!-- Logo/Title Section -->
+            <VBox alignment="CENTER" spacing="5" styleClass="login-header">
+                <Label text="🥬" styleClass="logo-emoji" style="-fx-font-size: 40px;"/>
+                <Label text="GroupXX GreenGrocer" styleClass="login-title" style="-fx-font-size: 20px;"/>
+                <Label text="Taze ve Doğal Ürünler" styleClass="login-subtitle" style="-fx-font-size: 12px;"/>
+            </VBox>
+            
+            <!-- Tab Pane for Login/Register -->
+            <TabPane fx:id="tabPane" styleClass="login-tabs" VBox.vgrow="NEVER">
+                <!-- Login Tab -->
+                <Tab text="Giriş Yap" closable="false">
+                    <VBox spacing="10" styleClass="login-form" alignment="CENTER">
+                        <padding><Insets top="15" right="20" bottom="15" left="20"/></padding>
+                        
+                        <VBox spacing="2">
+                            <Label text="Kullanıcı Adı" styleClass="field-label"/>
+                            <MFXTextField fx:id="usernameField" promptText="Kullanıcı adınızı girin" prefWidth="280" floatMode="BORDER"/>
+                        </VBox>
+                        
+                        <VBox spacing="2">
+                            <Label text="Şifre" styleClass="field-label"/>
+                            <MFXPasswordField fx:id="passwordField" promptText="Şifrenizi girin" prefWidth="280" floatMode="BORDER"/>
+                        </VBox>
+                        
+                        <MFXButton fx:id="loginButton" text="Giriş Yap" onAction="#handleLogin"
+                                   prefWidth="280" prefHeight="35" styleClass="login-button"/>
+                        
+                        <Label fx:id="errorLabel" text="" styleClass="error-label" visible="false"/>
+                    </VBox>
+                </Tab>
+                
+                <!-- Register Tab -->
+                <Tab text="Kayıt Ol" closable="false">
+                    <ScrollPane fitToWidth="true" styleClass="scroll-pane" prefHeight="300">
+                        <VBox spacing="8" styleClass="login-form">
+                            <padding><Insets top="10" right="15" bottom="10" left="15"/></padding>
+                            
+                            <VBox spacing="2">
+                                <Label text="Kullanıcı Adı *" styleClass="field-label"/>
+                                <MFXTextField fx:id="regUsernameField" promptText="Benzersiz kullanıcı adı" prefWidth="280"/>
+                            </VBox>
+                            
+                            <VBox spacing="2">
+                                <Label text="Şifre * (min 6 karakter, 1 rakam)" styleClass="field-label"/>
+                                <MFXPasswordField fx:id="regPasswordField" promptText="Güçlü şifre girin" prefWidth="280"/>
+                            </VBox>
+                            
+                            <VBox spacing="2">
+                                <Label text="Şifre Tekrar *" styleClass="field-label"/>
+                                <MFXPasswordField fx:id="regPasswordConfirmField" promptText="Şifreyi tekrar girin" prefWidth="280"/>
+                            </VBox>
+                            
+                            <VBox spacing="2">
+                                <Label text="Ad Soyad *" styleClass="field-label"/>
+                                <MFXTextField fx:id="regFullNameField" promptText="Adınız ve soyadınız" prefWidth="280"/>
+                            </VBox>
+                            
+                            <VBox spacing="2">
+                                <Label text="Adres *" styleClass="field-label"/>
+                                <MFXTextField fx:id="regAddressField" promptText="Teslimat adresi" prefWidth="280"/>
+                            </VBox>
+                            
+                            <VBox spacing="2">
+                                <Label text="Telefon" styleClass="field-label"/>
+                                <MFXTextField fx:id="regPhoneField" promptText="5XX XXX XX XX" prefWidth="280"/>
+                            </VBox>
+                            
+                            <VBox spacing="2">
+                                <Label text="E-posta" styleClass="field-label"/>
+                                <MFXTextField fx:id="regEmailField" promptText="email@example.com" prefWidth="280"/>
+                            </VBox>
+                            
+                            <MFXButton fx:id="registerButton" text="Kayıt Ol" onAction="#handleRegister"
+                                       prefWidth="280" prefHeight="35" styleClass="login-button"/>
+                            
+                            <Label fx:id="regErrorLabel" text="" styleClass="error-label" visible="false"/>
+                            <Label fx:id="regSuccessLabel" text="" styleClass="success-label" visible="false"/>
+                        </VBox>
+                    </ScrollPane>
+                </Tab>
+            </TabPane>
+            
+            <!-- Footer -->
+            <VBox alignment="CENTER" spacing="2" styleClass="login-footer">
+                <Label text="Demo: cust/cust, carr/carr, own/own" styleClass="demo-text" style="-fx-font-size: 10px;"/>
+            </VBox>
+        </VBox>
+    </center>
+</BorderPane>
