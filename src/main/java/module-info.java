@@ -9,12 +9,12 @@ module com.greengrocer {
     requires io;
 
     opens com.greengrocer to javafx.fxml;
-    opens com.localgreengrocer.controllers to javafx.fxml;
-    opens com.localgreengrocer.models to javafx.base;
+    opens com.greengrocer.controllers to javafx.fxml;
+    opens com.greengrocer.models to javafx.base;
 
     exports com.greengrocer;
-    exports com.localgreengrocer.controllers;
-    exports com.localgreengrocer.models;
-    exports com.localgreengrocer.dao;
-    exports com.localgreengrocer.utils;
+    exports com.greengrocer.controllers;
+    exports com.greengrocer.models;
+    exports com.greengrocer.dao;
+    exports com.greengrocer.utils;
 }
