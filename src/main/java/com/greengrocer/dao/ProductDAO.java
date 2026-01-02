@@ -9,21 +9,34 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Data Access Object for Product operations.
+ * Data Access Object for {@link Product} operations.
+ * <p>
+ * Handles all database interactions related to products, including inventory
+ * management,
+ * searching, and retrieval by various criteria.
+ * </p>
  */
 public class ProductDAO {
-    private final DBConnection dbAdapter;
+    /** The database adapter for connection management. */
+    private final DatabaseAdapter dbAdapter;
 
+    /**
+     * Default constructor.
+     * <p>
+     * Initializes the {@link DatabaseAdapter} instance.
+     * </p>
+     */
     public ProductDAO() {
-        this.dbAdapter = DBConnection.getInstance();
+        this.dbAdapter = DatabaseAdapter.getInstance();
     }
 
     /**
-     * Find a product by ID.
-     * 
-     * @param id the product ID
-     * @return Optional containing the product if found
-     * @throws SQLException if a database error occurs
+     * Finds a product by its unique identifier.
+     *
+     * @param id The unique identifier of the product.
+     * @return An {@link Optional} containing the {@link Product} if found;
+     *         {@link Optional#empty()} otherwise.
+     * @throws SQLException If a database access error occurs.
      */
     public Optional<Product> findById(int id) throws SQLException {
         String sql = "SELECT * FROM ProductInfo WHERE id = ?";
@@ -39,10 +52,14 @@ public class ProductDAO {
     }
 
     /**
-     * Get all active products sorted by name.
-     * 
-     * @return list of all active products
-     * @throws SQLException if a database error occurs
+     * Retrieves all active products.
+     * <p>
+     * Results are sorted alphabetically by product name.
+     * Only products marked as {@code is_active = TRUE} are returned.
+     * </p>
+     *
+     * @return A {@link List} of all active {@link Product} objects.
+     * @throws SQLException If a database access error occurs.
      */
     public List<Product> findAll() throws SQLException {
         List<Product> products = new ArrayList<>();
@@ -58,10 +75,14 @@ public class ProductDAO {
     }
 
     /**
-     * Get all products with stock > 0, sorted by name.
-     * 
-     * @return list of in-stock products
-     * @throws SQLException if a database error occurs
+     * Retrieves all active products that are currently in stock.
+     * <p>
+     * Filters for {@code is_active = TRUE} and {@code stock > 0}.
+     * Results are sorted alphabetically by product name.
+     * </p>
+     *
+     * @return A {@link List} of in-stock {@link Product} objects.
+     * @throws SQLException If a database access error occurs.
      */
     public List<Product> findAllInStock() throws SQLException {
         List<Product> products = new ArrayList<>();
@@ -77,11 +98,11 @@ public class ProductDAO {
     }
 
     /**
-     * Find products by type.
-     * 
-     * @param type the product type
-     * @return list of products of the specified type
-     * @throws SQLException if a database error occurs
+     * Finds active, in-stock products of a specific type.
+     *
+     * @param type The {@link ProductType} to filter by (e.g., VEGETABLE, FRUIT).
+     * @return A {@link List} of matching {@link Product} objects.
+     * @throws SQLException If a database access error occurs.
      */
     public List<Product> findByType(ProductType type) throws SQLException {
         List<Product> products = new ArrayList<>();
@@ -98,52 +119,88 @@ public class ProductDAO {
     }
 
     /**
-     * Get all vegetables in stock.
-     * 
-     * @return list of vegetables
-     * @throws SQLException if a database error occurs
+     * Retrieves all available vegetables.
+     * <p>
+     * Convenience method for {@code findByType(ProductType.VEGETABLE)}.
+     * </p>
+     *
+     * @return A {@link List} of vegetable products.
+     * @throws SQLException If a database access error occurs.
      */
     public List<Product> getVegetables() throws SQLException {
         return findByType(ProductType.VEGETABLE);
     }
 
     /**
-     * Get all fruits in stock.
-     * 
-     * @return list of fruits
-     * @throws SQLException if a database error occurs
+     * Retrieves all available fruits.
+     * <p>
+     * Convenience method for {@code findByType(ProductType.FRUIT)}.
+     * </p>
+     *
+     * @return A {@link List} of fruit products.
+     * @throws SQLException If a database access error occurs.
      */
     public List<Product> getFruits() throws SQLException {
         return findByType(ProductType.FRUIT);
     }
 
     /**
-     * Search products by name keyword.
-     * 
-     * @param keyword the search keyword
-     * @return list of matching products
-     * @throws SQLException if a database error occurs
+     * Searches for products matching a keyword.
+     * <p>
+     * Performs a case-insensitive search on the product name.
+     * Handles Turkish locale-specific character matching (e.g., I-ı, İ-i).
+     * Only returns active, in-stock products.
+     * </p>
+     *
+     * @param keyword The search term.
+     * @return A {@link List} of matching {@link Product} objects, sorted by name.
+     * @throws SQLException If a database access error occurs.
      */
     public List<Product> search(String keyword) throws SQLException {
         List<Product> products = new ArrayList<>();
-        String sql = "SELECT * FROM ProductInfo WHERE is_active = TRUE AND stock > 0 AND name LIKE ? ORDER BY name";
+        // Fetch all active products
+        // We filter in Java to handle Turkish characters correctly (e.g. I-ı, İ-i, O-o,
+        // Ö-ö distinctions)
+        String sql = "SELECT * FROM ProductInfo WHERE is_active = TRUE AND stock > 0";
         try (Connection conn = dbAdapter.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, "%" + keyword + "%");
             ResultSet rs = stmt.executeQuery();
+
+            java.util.Locale trLocale = java.util.Locale.forLanguageTag("tr-TR");
+            String searchKey = keyword.toLowerCase(trLocale);
+
             while (rs.next()) {
-                products.add(mapResultSetToProduct(rs));
+                Product p = mapResultSetToProduct(rs);
+                String pName = p.getName().toLowerCase(trLocale);
+
+                // Using startsWith to mimic original behavior but with correct Locale
+                // MySQL default collation might be accent-insensitive (o==ö), so we handle it
+                // here
+                if (pName.startsWith(searchKey)) {
+                    products.add(p);
+                }
             }
         }
+
+        // Sort results
+        products.sort((p1, p2) -> {
+            java.util.Locale trLocale = java.util.Locale.forLanguageTag("tr-TR");
+            return p1.getName().toLowerCase(trLocale).compareTo(p2.getName().toLowerCase(trLocale));
+        });
+
         return products;
     }
 
     /**
-     * Create a new product.
-     * 
-     * @param product the product to create
-     * @return the created product with ID set
-     * @throws SQLException if a database error occurs
+     * Creates a new product in the database.
+     * <p>
+     * Inserts product details including image data.
+     * Retrieves and sets the generated product ID.
+     * </p>
+     *
+     * @param product The {@link Product} object to create.
+     * @return The updated {@link Product} object with its new database ID.
+     * @throws SQLException If a database access error occurs.
      */
     public Product create(Product product) throws SQLException {
         String sql = "INSERT INTO ProductInfo (name, type, unit_type, price, stock, threshold, image, image_name, description, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -170,11 +227,11 @@ public class ProductDAO {
     }
 
     /**
-     * Update an existing product.
-     * 
-     * @param product the product to update
-     * @return true if update successful
-     * @throws SQLException if a database error occurs
+     * Updates an existing product's details.
+     *
+     * @param product The {@link Product} object containing updated information.
+     * @return {@code true} if the update was successful; {@code false} otherwise.
+     * @throws SQLException If a database access error occurs.
      */
     public boolean update(Product product) throws SQLException {
         String sql = "UPDATE ProductInfo SET name = ?, type = ?, unit_type = ?, price = ?, stock = ?, threshold = ?, image = ?, image_name = ?, description = ?, is_active = ? WHERE id = ?";
@@ -196,12 +253,12 @@ public class ProductDAO {
     }
 
     /**
-     * Update product stock.
-     * 
-     * @param productId the product ID
-     * @param newStock  the new stock value
-     * @return true if update successful
-     * @throws SQLException if a database error occurs
+     * Updates the stock quantity of a product.
+     *
+     * @param productId The unique identifier of the product.
+     * @param newStock  The new stock quantity to set.
+     * @return {@code true} if the update was successful; {@code false} otherwise.
+     * @throws SQLException If a database access error occurs.
      */
     public boolean updateStock(int productId, double newStock) throws SQLException {
         String sql = "UPDATE ProductInfo SET stock = ? WHERE id = ?";
@@ -214,12 +271,16 @@ public class ProductDAO {
     }
 
     /**
-     * Update product threshold.
-     * 
-     * @param productId    the product ID
-     * @param newThreshold the new threshold value
-     * @return true if update successful
-     * @throws SQLException if a database error occurs
+     * Updates the stock threshold for a product.
+     * <p>
+     * The threshold determines when the product price might increase (e.g.,
+     * doubling price when stock is low).
+     * </p>
+     *
+     * @param productId    The unique identifier of the product.
+     * @param newThreshold The new threshold value.
+     * @return {@code true} if the update was successful; {@code false} otherwise.
+     * @throws SQLException If a database access error occurs.
      */
     public boolean updateThreshold(int productId, double newThreshold) throws SQLException {
         String sql = "UPDATE ProductInfo SET threshold = ? WHERE id = ?";
@@ -232,12 +293,16 @@ public class ProductDAO {
     }
 
     /**
-     * Reduce product stock by a given amount.
-     * 
-     * @param productId the product ID
-     * @param amount    the amount to reduce
-     * @return true if update successful
-     * @throws SQLException if a database error occurs
+     * Reduces the stock of a product by a specified amount.
+     * <p>
+     * This operation is atomic and ensures stock does not go below zero.
+     * </p>
+     *
+     * @param productId The unique identifier of the product.
+     * @param amount    The amount to subtract from the current stock.
+     * @return {@code true} if the stock was successfully reduced; {@code false} if
+     *         insufficient stock or error.
+     * @throws SQLException If a database access error occurs.
      */
     public boolean reduceStock(int productId, double amount) throws SQLException {
         String sql = "UPDATE ProductInfo SET stock = stock - ? WHERE id = ? AND stock >= ?";
@@ -251,12 +316,12 @@ public class ProductDAO {
     }
 
     /**
-     * Restore product stock by a given amount (for order cancellation).
-     * 
-     * @param productId the product ID
-     * @param amount    the amount to restore
-     * @return true if update successful
-     * @throws SQLException if a database error occurs
+     * Restores stock for a product (e.g., after an order cancellation).
+     *
+     * @param productId The unique identifier of the product.
+     * @param amount    The amount to add back to the stock.
+     * @return {@code true} if the update was successful; {@code false} otherwise.
+     * @throws SQLException If a database access error occurs.
      */
     public boolean restoreStock(int productId, double amount) throws SQLException {
         String sql = "UPDATE ProductInfo SET stock = stock + ? WHERE id = ?";
@@ -269,11 +334,17 @@ public class ProductDAO {
     }
 
     /**
-     * Deactivate a product (soft delete).
-     * 
-     * @param id the product ID
-     * @return true if deactivation successful
-     * @throws SQLException if a database error occurs
+     * Deactivates a product (soft delete).
+     * <p>
+     * Sets {@code is_active} to {@code FALSE}, making the product unavailable for
+     * new orders
+     * but preserving historical data.
+     * </p>
+     *
+     * @param id The unique identifier of the product.
+     * @return {@code true} if the deactivation was successful; {@code false}
+     *         otherwise.
+     * @throws SQLException If a database access error occurs.
      */
     public boolean deactivate(int id) throws SQLException {
         String sql = "UPDATE ProductInfo SET is_active = FALSE WHERE id = ?";
@@ -285,18 +356,21 @@ public class ProductDAO {
     }
 
     /**
-     * Get popular products based on total quantity sold.
+     * Retrieves the most popular products based on total quantity sold.
+     * <p>
+     * Aggregates sales data from {@code OrderItems} for active products.
+     * </p>
      *
-     * @param limit the maximum number of products to return
-     * @return list of popular products
-     * @throws SQLException if a database error occurs
+     * @param limit The maximum number of products to return.
+     * @return A {@link List} of the top-selling {@link Product} objects.
+     * @throws SQLException If a database access error occurs.
      */
     public List<Product> getPopularProducts(int limit) throws SQLException {
         List<Product> products = new ArrayList<>();
         String sql = "SELECT p.*, SUM(oi.amount) as total_sold " +
                 "FROM ProductInfo p " +
                 "JOIN OrderItems oi ON p.id = oi.product_id " +
-                "WHERE p.is_active = TRUE " +
+                "WHERE p.is_active = TRUE AND p.stock > p.threshold " +
                 "GROUP BY p.id " +
                 "ORDER BY total_sold DESC " +
                 "LIMIT ?";
@@ -312,12 +386,16 @@ public class ProductDAO {
     }
 
     /**
-     * Search products starting with the given prefix.
+     * Searches for products whose names start with the given prefix.
+     * <p>
+     * Useful for autocomplete or quick search features.
+     * Only returns active, in-stock products.
+     * </p>
      *
-     * @param prefix the search prefix
-     * @param limit  the maximum number of results
-     * @return list of matching products
-     * @throws SQLException if a database error occurs
+     * @param prefix The prefix string to search for.
+     * @param limit  The maximum number of results to return.
+     * @return A {@link List} of matching {@link Product} objects.
+     * @throws SQLException If a database access error occurs.
      */
     public List<Product> searchStartsWith(String prefix, int limit) throws SQLException {
         List<Product> products = new ArrayList<>();

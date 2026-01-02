@@ -1,8 +1,13 @@
 package com.greengrocer.utils;
 
 /**
- * Minimal implementation of Blake2b for Argon2.
+ * Minimal implementation of the Blake2b cryptographic hash function.
+ * <p>
+ * Used internally by {@link Argon2id} for hashing blocks and finalization.
  * Based on RFC 7693.
+ * </p>
+ * 
+ * @author Burak Özevin
  */
 public class Blake2b {
 
@@ -34,6 +39,14 @@ public class Blake2b {
     private long t1 = 0; // High 64 bits of offset
     private final int outlen;
 
+    /**
+     * Constructs a new Blake2b hasher with the specified output length.
+     *
+     * @param outlen The desired length of the hash in bytes (1 to 64).
+     * @throws IllegalArgumentException If the output length is invalid.
+     * 
+     * @author Burak Özevin
+     */
     public Blake2b(int outlen) {
         this.outlen = outlen;
         if (outlen < 1 || outlen > 64)
@@ -43,12 +56,28 @@ public class Blake2b {
         h[0] ^= 0x01010000 | outlen;
     }
 
+    /**
+     * Updates the hash with the given byte array.
+     *
+     * @param in The input byte array.
+     * 
+     * @author Burak Özevin
+     */
     public void update(byte[] in) {
         if (in == null)
             return;
         update(in, 0, in.length);
     }
 
+    /**
+     * Updates the hash with a portion of the given byte array.
+     *
+     * @param in     The input byte array.
+     * @param offset The starting offset.
+     * @param len    The number of bytes to process.
+     * 
+     * @author Burak Özevin
+     */
     public void update(byte[] in, int offset, int len) {
         for (int i = 0; i < len; i++) {
             if (bufferLen == 128) {
@@ -62,6 +91,13 @@ public class Blake2b {
         }
     }
 
+    /**
+     * Updates the hash with an integer value (converted to 4 bytes).
+     *
+     * @param value The integer to update with.
+     * 
+     * @author Burak Özevin
+     */
     public void update(int value) {
         byte[] b = new byte[4];
         b[0] = (byte) (value);
@@ -71,6 +107,13 @@ public class Blake2b {
         update(b);
     }
 
+    /**
+     * Finalizes the hash computation and returns the result.
+     *
+     * @return The computed hash bytes.
+     * 
+     * @author Burak Özevin
+     */
     public byte[] digest() {
         t0 += bufferLen;
         if (t0 < bufferLen)
@@ -88,10 +131,25 @@ public class Blake2b {
         return out;
     }
 
+    /**
+     * Compresses the block.
+     * 
+     * @param buf The buffer containing the block
+     * @param off The offset in the buffer
+     * @author Burak Özevin
+     */
     private void compress(byte[] buf, int off) {
         compress(buf, off, false);
     }
 
+    /**
+     * Compresses the block with optional last block flag.
+     * 
+     * @param buf    The buffer containing the block
+     * @param off    The offset in the buffer
+     * @param isLast Whether this is the last block
+     * @author Burak Özevin
+     */
     private void compress(byte[] buf, int off, boolean isLast) {
         long[] v = new long[16];
         System.arraycopy(h, 0, v, 0, 8);
@@ -123,6 +181,18 @@ public class Blake2b {
         }
     }
 
+    /**
+     * Mixing function G.
+     * 
+     * @param v The working vector
+     * @param a Index a
+     * @param b Index b
+     * @param c Index c
+     * @param d Index d
+     * @param x Input x
+     * @param y Input y
+     * @author Burak Özevin
+     */
     private void mix(long[] v, int a, int b, int c, int d, long x, long y) {
         v[a] = v[a] + v[b] + x;
         v[d] = Long.rotateRight(v[d] ^ v[a], 32);
@@ -134,6 +204,14 @@ public class Blake2b {
         v[b] = Long.rotateRight(v[b] ^ v[c], 63);
     }
 
+    /**
+     * Converts 8 bytes to a long (Little Endian).
+     * 
+     * @param b   The byte array
+     * @param off The offset
+     * @return The long value
+     * @author Burak Özevin
+     */
     private static long bytesToLong(byte[] b, int off) {
         return ((long) b[off] & 0xff) |
                 ((long) b[off + 1] & 0xff) << 8 |

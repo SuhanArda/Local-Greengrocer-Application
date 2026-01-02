@@ -11,21 +11,47 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Data Access Object for Order operations.
+ * Data Access Object for {@link Order} operations.
+ * <p>
+ * Manages all database interactions related to orders, including creation,
+ * retrieval,
+ * status updates, and assignment of carriers.
+ * </p>
+ * 
+ * @author Ramazan Birkan Öztürk
  */
 public class OrderDAO {
-    private final DBConnection dbAdapter;
+    /** The database adapter for connection management. */
+    private final DatabaseAdapter dbAdapter;
 
+    /**
+     * Default constructor.
+     * <p>
+     * Initializes the {@link DatabaseAdapter} instance.
+     * </p>
+     * 
+     * @author Ramazan Birkan Öztürk
+     */
     public OrderDAO() {
-        this.dbAdapter = DBConnection.getInstance();
+        this.dbAdapter = DatabaseAdapter.getInstance();
     }
 
     /**
-     * Find an order by ID.
+     * Finds a specific order by its unique identifier.
+     * <p>
+     * Retrieves the order details along with:
+     * <ul>
+     * <li>Customer name and address</li>
+     * <li>Carrier name (if assigned)</li>
+     * <li>All associated {@link OrderItem}s</li>
+     * </ul>
+     *
+     * @param id The unique identifier of the order.
+     * @return An {@link Optional} containing the {@link Order} if found;
+     *         {@link Optional#empty()} otherwise.
+     * @throws SQLException If a database access error occurs.
      * 
-     * @param id the order ID
-     * @return Optional containing the order if found
-     * @throws SQLException if a database error occurs
+     * @author Ramazan Birkan Öztürk
      */
     public Optional<Order> findById(int id) throws SQLException {
         String sql = "SELECT o.*, " +
@@ -49,11 +75,17 @@ public class OrderDAO {
     }
 
     /**
-     * Find all orders for a customer.
+     * Retrieves all orders placed by a specific customer.
+     * <p>
+     * The results are ordered by {@code order_time} in descending order (newest
+     * first).
+     * </p>
+     *
+     * @param customerId The unique identifier of the customer.
+     * @return A {@link List} of {@link Order} objects belonging to the customer.
+     * @throws SQLException If a database access error occurs.
      * 
-     * @param customerId the customer ID
-     * @return list of customer's orders
-     * @throws SQLException if a database error occurs
+     * @author Ramazan Birkan Öztürk
      */
     public List<Order> findByCustomer(int customerId) throws SQLException {
         List<Order> orders = new ArrayList<>();
@@ -78,11 +110,16 @@ public class OrderDAO {
     }
 
     /**
-     * Find all orders for a carrier.
+     * Retrieves all orders assigned to a specific carrier.
+     * <p>
+     * The results are ordered by {@code order_time} in descending order.
+     * </p>
+     *
+     * @param carrierId The unique identifier of the carrier.
+     * @return A {@link List} of {@link Order} objects assigned to the carrier.
+     * @throws SQLException If a database access error occurs.
      * 
-     * @param carrierId the carrier ID
-     * @return list of carrier's orders
-     * @throws SQLException if a database error occurs
+     * @author Ramazan Birkan Öztürk
      */
     public List<Order> findByCarrier(int carrierId) throws SQLException {
         List<Order> orders = new ArrayList<>();
@@ -107,21 +144,33 @@ public class OrderDAO {
     }
 
     /**
-     * Find all pending orders (available for carriers).
+     * Retrieves all orders with status {@code PENDING}.
+     * <p>
+     * These are orders that have been placed but not yet assigned to or accepted by
+     * a carrier.
+     * </p>
+     *
+     * @return A {@link List} of pending {@link Order} objects.
+     * @throws SQLException If a database access error occurs.
      * 
-     * @return list of pending orders
-     * @throws SQLException if a database error occurs
+     * @author Ramazan Birkan Öztürk
      */
     public List<Order> findPendingOrders() throws SQLException {
         return findByStatus(OrderStatus.PENDING);
     }
 
     /**
-     * Find orders by status.
+     * Retrieves all orders matching a specific status.
+     * <p>
+     * The results are ordered by {@code requested_delivery_time} in ascending order
+     * (earliest first).
+     * </p>
+     *
+     * @param status The {@link OrderStatus} to filter by.
+     * @return A {@link List} of {@link Order} objects with the specified status.
+     * @throws SQLException If a database access error occurs.
      * 
-     * @param status the order status
-     * @return list of orders with the specified status
-     * @throws SQLException if a database error occurs
+     * @author Ramazan Birkan Öztürk
      */
     public List<Order> findByStatus(OrderStatus status) throws SQLException {
         List<Order> orders = new ArrayList<>();
@@ -146,10 +195,16 @@ public class OrderDAO {
     }
 
     /**
-     * Find all orders (for owner view).
+     * Retrieves all orders in the system.
+     * <p>
+     * Typically used by the Owner to view the complete order history.
+     * Results are ordered by {@code order_time} in descending order.
+     * </p>
+     *
+     * @return A {@link List} of all {@link Order} objects.
+     * @throws SQLException If a database access error occurs.
      * 
-     * @return list of all orders
-     * @throws SQLException if a database error occurs
+     * @author Ramazan Birkan Öztürk
      */
     public List<Order> findAll() throws SQLException {
         List<Order> orders = new ArrayList<>();
@@ -173,11 +228,21 @@ public class OrderDAO {
     }
 
     /**
-     * Create a new order with its items.
+     * Creates a new order and its associated order items in the database.
+     * <p>
+     * This method performs the following:
+     * <ol>
+     * <li>Inserts the main order record into {@code OrderInfo}.</li>
+     * <li>Retrieves the generated order ID.</li>
+     * <li>Iterates through the list of {@link OrderItem}s and persists each one
+     * into {@code OrderItems}.</li>
+     * </ol>
+     *
+     * @param order The {@link Order} object to be created.
+     * @return The updated {@link Order} object with its new database ID.
+     * @throws SQLException If a database access error occurs.
      * 
-     * @param order the order to create
-     * @return the created order with ID set
-     * @throws SQLException if a database error occurs
+     * @author Ramazan Birkan Öztürk
      */
     public Order create(Order order) throws SQLException {
         String sql = "INSERT INTO OrderInfo (customer_id, carrier_id, order_time, requested_delivery_time, status, subtotal, vat_amount, discount_amount, total_cost, coupon_code, invoice, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -193,7 +258,7 @@ public class OrderDAO {
             stmt.setDouble(8, order.getDiscountAmount());
             stmt.setDouble(9, order.getTotalCost());
             stmt.setString(10, order.getCouponCode());
-            stmt.setBytes(11, order.getInvoice());
+            stmt.setString(11, order.getInvoice());
             stmt.setString(12, order.getNotes());
             stmt.executeUpdate();
 
@@ -211,7 +276,12 @@ public class OrderDAO {
     }
 
     /**
-     * Create an order item.
+     * Helper method to persist a single order item.
+     *
+     * @param item The {@link OrderItem} to create.
+     * @throws SQLException If a database access error occurs.
+     * 
+     * @author Ramazan Birkan Öztürk
      */
     private void createOrderItem(OrderItem item) throws SQLException {
         String sql = "INSERT INTO OrderItems (order_id, product_id, product_name, amount, unit_price, total_price) VALUES (?, ?, ?, ?, ?, ?)";
@@ -233,7 +303,13 @@ public class OrderDAO {
     }
 
     /**
-     * Find order items for an order.
+     * Helper method to find all items associated with a specific order.
+     *
+     * @param orderId The unique identifier of the order.
+     * @return A {@link List} of {@link OrderItem}s.
+     * @throws SQLException If a database access error occurs.
+     * 
+     * @author Ramazan Birkan Öztürk
      */
     private List<OrderItem> findOrderItems(int orderId) throws SQLException {
         List<OrderItem> items = new ArrayList<>();
@@ -258,12 +334,14 @@ public class OrderDAO {
     }
 
     /**
-     * Update order status.
+     * Updates the status of an order.
+     *
+     * @param orderId The unique identifier of the order.
+     * @param status  The new {@link OrderStatus} to set.
+     * @return {@code true} if the update was successful; {@code false} otherwise.
+     * @throws SQLException If a database access error occurs.
      * 
-     * @param orderId the order ID
-     * @param status  the new status
-     * @return true if update successful
-     * @throws SQLException if a database error occurs
+     * @author Ramazan Birkan Öztürk
      */
     public boolean updateStatus(int orderId, OrderStatus status) throws SQLException {
         String sql = "UPDATE OrderInfo SET status = ? WHERE id = ?";
@@ -276,12 +354,20 @@ public class OrderDAO {
     }
 
     /**
-     * Assign a carrier to an order.
+     * Assigns a carrier to a pending order and updates its status to
+     * {@code SELECTED}.
+     * <p>
+     * This operation ensures that only orders currently in {@code PENDING} status
+     * can be assigned.
+     * </p>
+     *
+     * @param orderId   The unique identifier of the order.
+     * @param carrierId The unique identifier of the carrier.
+     * @return {@code true} if the assignment was successful; {@code false} if the
+     *         order was not pending or other error.
+     * @throws SQLException If a database access error occurs.
      * 
-     * @param orderId   the order ID
-     * @param carrierId the carrier ID
-     * @return true if update successful
-     * @throws SQLException if a database error occurs
+     * @author Ramazan Birkan Öztürk
      */
     public boolean assignCarrier(int orderId, int carrierId) throws SQLException {
         String sql = "UPDATE OrderInfo SET carrier_id = ?, status = 'selected' WHERE id = ? AND status = 'pending'";
@@ -294,12 +380,14 @@ public class OrderDAO {
     }
 
     /**
-     * Mark an order as delivered.
+     * Marks an order as {@code DELIVERED} and records the actual delivery time.
+     *
+     * @param orderId      The unique identifier of the order.
+     * @param deliveryTime The timestamp when the delivery was completed.
+     * @return {@code true} if the update was successful; {@code false} otherwise.
+     * @throws SQLException If a database access error occurs.
      * 
-     * @param orderId      the order ID
-     * @param deliveryTime the actual delivery time
-     * @return true if update successful
-     * @throws SQLException if a database error occurs
+     * @author Ramazan Birkan Öztürk
      */
     public boolean markDelivered(int orderId, LocalDateTime deliveryTime) throws SQLException {
         String sql = "UPDATE OrderInfo SET status = 'delivered', actual_delivery_time = ? WHERE id = ?";
@@ -312,29 +400,40 @@ public class OrderDAO {
     }
 
     /**
-     * Cancel an order.
+     * Cancels an order by updating its status to {@code CANCELLED}.
+     *
+     * @param orderId The unique identifier of the order.
+     * @return {@code true} if the cancellation was successful; {@code false}
+     *         otherwise.
+     * @throws SQLException If a database access error occurs.
      * 
-     * @param orderId the order ID
-     * @return true if cancellation successful
-     * @throws SQLException if a database error occurs
+     * @author Ramazan Birkan Öztürk
      */
     public boolean cancel(int orderId) throws SQLException {
         return updateStatus(orderId, OrderStatus.CANCELLED);
     }
 
     /**
-     * Update order invoice.
+     * Updates the invoice data for an order.
+     * <p>
+     * The invoice is stored as a Base64 encoded string in the database.
+     * </p>
+     *
+     * @param orderId      The unique identifier of the order.
+     * @param invoiceBytes The raw byte content of the invoice (e.g., PDF data).
+     * @return {@code true} if the update was successful; {@code false} otherwise.
+     * @throws SQLException If a database access error occurs.
      * 
-     * @param orderId the order ID
-     * @param invoice the invoice content (BLOB)
-     * @return true if update successful
-     * @throws SQLException if a database error occurs
+     * @author Ramazan Birkan Öztürk
      */
-    public boolean updateInvoice(int orderId, byte[] invoice) throws SQLException {
+    public boolean updateInvoice(int orderId, byte[] invoiceBytes) throws SQLException {
         String sql = "UPDATE OrderInfo SET invoice = ? WHERE id = ?";
         try (Connection conn = dbAdapter.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setBytes(1, invoice);
+            String invoiceBase64 = (invoiceBytes != null && invoiceBytes.length > 0)
+                    ? java.util.Base64.getEncoder().encodeToString(invoiceBytes)
+                    : null;
+            stmt.setString(1, invoiceBase64);
             stmt.setInt(2, orderId);
             return stmt.executeUpdate() > 0;
         }
@@ -342,6 +441,8 @@ public class OrderDAO {
 
     /**
      * Map a ResultSet row to an Order object.
+     * 
+     * @author Ramazan Birkan Öztürk
      */
     private Order mapResultSetToOrder(ResultSet rs) throws SQLException {
         Order order = new Order();
@@ -367,7 +468,7 @@ public class OrderDAO {
         order.setDiscountAmount(rs.getDouble("discount_amount"));
         order.setTotalCost(rs.getDouble("total_cost"));
         order.setCouponCode(rs.getString("coupon_code"));
-        order.setInvoice(rs.getBytes("invoice"));
+        order.setInvoice(rs.getString("invoice"));
         order.setNotes(rs.getString("notes"));
 
         // Additional display fields

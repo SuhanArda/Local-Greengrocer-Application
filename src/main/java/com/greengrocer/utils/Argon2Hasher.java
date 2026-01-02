@@ -3,16 +3,47 @@ package com.greengrocer.utils;
 import java.security.SecureRandom;
 import java.util.Base64;
 
+/**
+ * Utility class for hashing and verifying passwords using the Argon2id
+ * algorithm.
+ * <p>
+ * This class provides a secure way to handle user passwords by generating salts
+ * and using memory-hard hashing to resist brute-force attacks.
+ * </p>
+ * 
+ * @author Burak Özevin
+ */
 public class Argon2Hasher {
 
+    /** Length of the random salt in bytes. */
     private static final int SALT_LENGTH = 16;
+    /** Length of the generated hash in bytes. */
     private static final int HASH_LENGTH = 32;
-    private static final int OPS_LIMIT = 3; // Iterations
-    // Note: Our custom impl takes memory in blocks of 1KB.
-    // 64MB = 65536 blocks.
+    /** Number of iterations (time cost). */
+    private static final int OPS_LIMIT = 3;
+    /**
+     * Memory usage in blocks of 1KB.
+     * <p>
+     * 64MB = 65536 blocks.
+     * </p>
+     */
     private static final int MEMORY_BLOCKS = 65536;
+    /** Degree of parallelism (number of threads). */
     private static final int PARALLELISM = 1;
 
+    /**
+     * Hashes a password using the Argon2id algorithm.
+     * <p>
+     * Generates a random salt and computes the hash.
+     * The result is formatted as a standard Argon2 string:
+     * {@code $argon2id$v=19$m=...,t=...,p=...$salt$hash}
+     * </p>
+     *
+     * @param password The password characters to hash.
+     * @return The encoded Argon2id hash string.
+     * 
+     * @author Burak Özevin
+     */
     public String hash(char[] password) {
         byte[] salt = new byte[SALT_LENGTH];
         new SecureRandom().nextBytes(salt);
@@ -33,6 +64,20 @@ public class Argon2Hasher {
                 hashB64);
     }
 
+    /**
+     * Verifies a password against an encoded Argon2id hash.
+     * <p>
+     * Parses the encoded hash to extract parameters and salt, then re-computes
+     * the hash for the provided password to check for a match.
+     * </p>
+     *
+     * @param password    The password characters to verify.
+     * @param encodedHash The previously stored encoded Argon2id hash string.
+     * @return {@code true} if the password matches the hash; {@code false}
+     *         otherwise.
+     * 
+     * @author Burak Özevin
+     */
     public boolean verify(char[] password, String encodedHash) {
         try {
             String[] parts = encodedHash.split("\\$");

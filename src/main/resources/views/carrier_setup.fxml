@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import io.github.palexdev.materialfx.controls.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
+            fx:controller="com.greengrocer.controllers.CarrierSetupController"
+            prefWidth="960" prefHeight="540" styleClass="login-root">
+    
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="scroll-pane" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
+            <content>
+                <StackPane>
+                    <VBox fx:id="mainContainer" alignment="CENTER" spacing="20" styleClass="login-form">
+                        <padding>
+                            <Insets top="30" right="40" bottom="30" left="40"/>
+                        </padding>
+                        
+                        <Label fx:id="titleLabel" text="Set Up Your Account" styleClass="login-title" style="-fx-text-fill: #2E7D32; -fx-font-weight: bold;"/>
+                        <Label fx:id="subtitleLabel" text="To access the system, you must set a new username and password." 
+                               styleClass="login-subtitle" style="-fx-text-fill: #757575;" wrapText="true" textAlignment="CENTER"/>
+                        
+                        <Separator maxWidth="1.7976931348623157E308"/>
+                        
+                        <VBox alignment="CENTER" spacing="5">
+                            <Label text="New Username *" styleClass="field-label"/>
+                            <MFXTextField fx:id="usernameField" promptText="At least 3 characters" maxWidth="1.7976931348623157E308" floatMode="BORDER"/>
+                        </VBox>
+                        
+                        <VBox alignment="CENTER" spacing="5">
+                            <Label text="New Password *" styleClass="field-label"/>
+                            <MFXPasswordField fx:id="passwordField" promptText="At least 6 characters, 1 number" maxWidth="1.7976931348623157E308" floatMode="BORDER"/>
+                            <VBox fx:id="passwordStrengthContainer" maxWidth="1.7976931348623157E308" visible="false" />
+                        </VBox>
+                        
+                        <VBox alignment="CENTER" spacing="5">
+                            <Label text="Confirm Password *" styleClass="field-label"/>
+                            <MFXPasswordField fx:id="confirmPasswordField" promptText="Re-enter the password" maxWidth="1.7976931348623157E308" floatMode="BORDER"/>
+                        </VBox>
+                        
+                        <Region prefHeight="10"/>
+                        
+                        <MFXButton fx:id="saveButton" text="Save and Continue" onAction="#handleSave"
+                                   maxWidth="1.7976931348623157E308" prefHeight="50" styleClass="login-button"/>
+                        
+                        <Label fx:id="errorLabel" text="" styleClass="error-label" visible="false"/>
+                    </VBox>
+                </StackPane>
+            </content>
+        </ScrollPane>
+    </center>
+</BorderPane>

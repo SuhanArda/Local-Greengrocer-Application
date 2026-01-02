@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import io.github.palexdev.materialfx.controls.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.greengrocer.controllers.CarrierController"
+           prefWidth="960" prefHeight="540" styleClass="main-container">
+
+    <!-- Main Content Area -->
+    <BorderPane fx:id="mainContainer" styleClass="main-container">
+    
+        <!-- Top Navigation Bar -->
+        <top>
+            <HBox styleClass="top-bar" alignment="CENTER_LEFT" spacing="20">
+                
+                <!-- Logo -->
+                <Label text="🚚 Carrier" styleClass="app-logo"/>
+
+                <HBox alignment="CENTER_LEFT" spacing="5" style="-fx-background-color: #f5f6fa; -fx-padding: 5 15; -fx-background-radius: 20;">
+                    <Label fx:id="ratingStars" style="-fx-text-fill: #FFD700; -fx-font-size: 16px;"/>
+                    <Label fx:id="ratingText" style="-fx-text-fill: #2d3436; -fx-font-size: 14px;"/>
+                </HBox>
+                
+                <Region HBox.hgrow="ALWAYS"/>
+                
+                <!-- Right: User Actions + Hamburger -->
+                <HBox spacing="15" alignment="CENTER">
+                    <MFXButton fx:id="themeToggleBtn" onAction="#handleThemeToggle" styleClass="icon-button-transparent" text="">
+                        <graphic>
+                            <FontIcon iconLiteral="fas-moon" iconSize="20" iconColor="white"/>
+                        </graphic>
+                    </MFXButton>
+                    <MFXButton onAction="#showProfile" styleClass="icon-button-transparent" text="">
+                        <graphic>
+                            <FontIcon iconLiteral="fas-user" iconSize="20" iconColor="white"/>
+                        </graphic>
+                    </MFXButton>
+                    <MFXButton onAction="#handleLogout" styleClass="icon-button-logout" text="">
+                        <graphic>
+                            <FontIcon iconLiteral="fas-sign-out-alt" iconSize="20" iconColor="#ffcdd2"/>
+                        </graphic>
+                    </MFXButton>
+                    <!-- Hamburger Menu (Right) -->
+                    <MFXButton fx:id="menuButton" styleClass="menu-button-circle" text="">
+                        <graphic>
+                            <FontIcon iconLiteral="fas-bars" iconSize="22" iconColor="white"/>
+                        </graphic>
+                    </MFXButton>
+                </HBox>
+                
+            </HBox>
+        </top>
+        
+        <!-- Main Content -->
+        <center>
+            <VBox spacing="15" styleClass="content-area">
+                <!-- Header -->
+                <HBox styleClass="page-header" spacing="20" alignment="CENTER_LEFT">
+                    <Label fx:id="pageTitle" text="Available Deliveries" styleClass="page-title"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <MFXButton text="🔄 Refresh" onAction="#refreshOrders" styleClass="primary-button"/>
+                </HBox>
+                
+                <!-- Orders Table -->
+                <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="scroll-pane">
+                    <VBox fx:id="ordersPane" spacing="10">
+                        <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+                    </VBox>
+                </ScrollPane>
+            </VBox>
+        </center>
+    </BorderPane>
+
+    <!-- Backdrop Overlay (Initially Invisible) -->
+    <Region fx:id="backdrop" styleClass="backdrop-overlay" visible="false" opacity="0"/>
+
+    <!-- Animated Sidebar (Initially Hidden - Slides from RIGHT) -->
+    <VBox fx:id="sidebar" spacing="20" styleClass="sidebar-panel" 
+          maxWidth="300" alignment="TOP_LEFT" translateX="320" StackPane.alignment="CENTER_RIGHT">
+        
+        <!-- Sidebar Header -->
+        <HBox alignment="CENTER_LEFT" spacing="10">
+            <Label text="Menu" styleClass="sidebar-header-text"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <MFXButton fx:id="closeMenuButton" styleClass="close-menu-button" text="">
+                <graphic>
+                    <FontIcon iconLiteral="fas-times" iconSize="20" iconColor="#757575"/>
+                </graphic>
+            </MFXButton>
+        </HBox>
+        
+        <Separator/>
+        
+        <!-- Navigation Links -->
+        <VBox spacing="10" alignment="TOP_LEFT">
+            <MFXButton text=" Available" onAction="#showAvailable" styleClass="sidebar-button" maxWidth="Infinity" alignment="CENTER_LEFT">
+                <graphic>
+                    <FontIcon iconLiteral="fas-clipboard-list" iconSize="18" iconColor="#546e7a"/>
+                </graphic>
+            </MFXButton>
+            <MFXButton text=" Active" onAction="#showCurrent" styleClass="sidebar-button" maxWidth="Infinity" alignment="CENTER_LEFT">
+                <graphic>
+                    <FontIcon iconLiteral="fas-truck" iconSize="18" iconColor="#546e7a"/>
+                </graphic>
+            </MFXButton>
+            <MFXButton text=" Completed" onAction="#showCompleted" styleClass="sidebar-button" maxWidth="Infinity" alignment="CENTER_LEFT">
+                <graphic>
+                    <FontIcon iconLiteral="fas-check-circle" iconSize="18" iconColor="#546e7a"/>
+                </graphic>
+            </MFXButton>
+        </VBox>
+        
+        <Region VBox.vgrow="ALWAYS"/>
+        
+        <Separator/>
+        
+        <!-- Footer -->
+        <Label text="GreenGrocer v1.0" styleClass="sidebar-footer-text"/>
+    </VBox>
+
+</StackPane>

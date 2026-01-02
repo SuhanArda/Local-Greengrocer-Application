@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.ScrollPane?>
+<?import io.github.palexdev.materialfx.controls.MFXButton?>
+<?import io.github.palexdev.materialfx.controls.MFXTextField?>
+<?import io.github.palexdev.materialfx.controls.MFXPasswordField?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.greengrocer.controllers.ProfileController"
+            prefWidth="1200" prefHeight="800" styleClass="main-container">
+
+    <!-- Left Sidebar -->
+    <left>
+        <VBox spacing="15" styleClass="profile-sidebar" prefWidth="280">
+            <Label text="My Account &amp; Help" styleClass="profile-sidebar-title"/>
+            <Separator/>
+            
+            <VBox spacing="5">
+                <MFXButton fx:id="userInfoBtn" text=" My Information" onAction="#showUserInfo" 
+                           styleClass="sidebar-button" maxWidth="Infinity" alignment="CENTER_LEFT">
+                    <graphic>
+                        <FontIcon iconLiteral="fas-user" iconSize="18" iconColor="#546e7a"/>
+                    </graphic>
+                </MFXButton>
+                <MFXButton fx:id="passwordBtn" text=" Change Password" onAction="#showPasswordChange" 
+                           styleClass="sidebar-button" maxWidth="Infinity" alignment="CENTER_LEFT">
+                    <graphic>
+                        <FontIcon iconLiteral="fas-lock" iconSize="18" iconColor="#546e7a"/>
+                    </graphic>
+                </MFXButton>
+                <Separator/>
+                <MFXButton text=" Back" onAction="#goBack" 
+                           styleClass="sidebar-button-back" maxWidth="Infinity" alignment="CENTER_LEFT">
+                    <graphic>
+                        <FontIcon iconLiteral="fas-arrow-left" iconSize="18" iconColor="#2E7D32"/>
+                    </graphic>
+                </MFXButton>
+                <MFXButton text=" Logout" onAction="#handleLogout" 
+                           styleClass="sidebar-button-logout" maxWidth="Infinity" alignment="CENTER_LEFT">
+                    <graphic>
+                        <FontIcon iconLiteral="fas-sign-out-alt" iconSize="18" iconColor="#c62828"/>
+                    </graphic>
+                </MFXButton>
+            </VBox>
+        </VBox>
+    </left>
+
+    <!-- Center Content -->
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="scroll-pane-transparent">
+            <StackPane styleClass="content-padding">
+                
+                <!-- User Info View -->
+                <VBox fx:id="userInfoPane" spacing="20" styleClass="profile-card" maxWidth="600">
+                    <Label text="My Information" styleClass="profile-card-title"/>
+                    <Separator/>
+                    
+                    <VBox spacing="20">
+                        <VBox spacing="8">
+                            <Label text="Full Name" styleClass="profile-field-label"/>
+                            <MFXTextField fx:id="nameField" prefWidth="400" styleClass="profile-input-field"/>
+                        </VBox>
+                        <VBox spacing="8">
+                            <Label text="Email Address" styleClass="profile-field-label"/>
+                            <MFXTextField fx:id="emailField" prefWidth="400" styleClass="profile-input-field"/>
+                        </VBox>
+                        <VBox spacing="8">
+                            <Label text="Phone Number" styleClass="profile-field-label"/>
+                            <MFXTextField fx:id="phoneField" prefWidth="400" styleClass="profile-input-field"/>
+                        </VBox>
+                        <VBox spacing="8">
+                            <HBox spacing="15">
+                                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                    <Label text="City" styleClass="profile-field-label"/>
+                                    <io.github.palexdev.materialfx.controls.MFXComboBox fx:id="cityCombo" prefWidth="192" styleClass="profile-combo-box"/>
+                                </VBox>
+                                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                    <Label text="District" styleClass="profile-field-label"/>
+                                    <io.github.palexdev.materialfx.controls.MFXComboBox fx:id="districtCombo" prefWidth="192" styleClass="profile-combo-box"/>
+                                </VBox>
+                            </HBox>
+                            <VBox spacing="5">
+                                <Label text="Full Address (Neighborhood, Street, No)" styleClass="profile-field-label"/>
+                                <MFXTextField fx:id="addressDetailsField" prefWidth="400" styleClass="profile-input-field"/>
+                            </VBox>
+                        </VBox>
+                    </VBox>
+                    
+                    <HBox spacing="15" alignment="CENTER_RIGHT">
+                        <MFXButton text="Save" onAction="#saveUserInfo" styleClass="primary-button"/>
+                    </HBox>
+                </VBox>
+                
+                <!-- Password Change View -->
+                <VBox fx:id="passwordPane" spacing="20" styleClass="profile-card" maxWidth="600" visible="false">
+                    <Label text="Change Password" styleClass="profile-card-title"/>
+                    <Separator/>
+                    
+                    <VBox spacing="20">
+                        <VBox spacing="8">
+                            <Label text="Current Password" styleClass="profile-field-label"/>
+                            <MFXPasswordField fx:id="oldPasswordField" prefWidth="400" styleClass="profile-input-field"/>
+                        </VBox>
+                        <VBox spacing="8">
+                            <Label text="New Password" styleClass="profile-field-label"/>
+                            <MFXPasswordField fx:id="newPasswordField" prefWidth="400" styleClass="profile-input-field"/>
+                            <VBox fx:id="passwordStrengthContainer" prefWidth="400" visible="false" />
+                        </VBox>
+                        <VBox spacing="8">
+                            <Label text="New Password (Confirm)" styleClass="profile-field-label"/>
+                            <MFXPasswordField fx:id="confirmPasswordField" prefWidth="400" styleClass="profile-input-field"/>
+                        </VBox>
+                    </VBox>
+                    
+                    <HBox spacing="15" alignment="CENTER_RIGHT">
+                        <MFXButton text="Change" onAction="#changePassword" styleClass="primary-button"/>
+                    </HBox>
+                </VBox>
+                
+            </StackPane>
+        </ScrollPane>
+    </center>
+
+</BorderPane>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import io.github.palexdev.materialfx.controls.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
+            fx:controller="com.greengrocer.controllers.SignupController"
+            prefWidth="960" prefHeight="540" styleClass="login-root">
+    
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="scroll-pane" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
+            <content>
+                <StackPane>
+                    <VBox fx:id="mainContainer" alignment="CENTER" spacing="20" styleClass="login-form">
+                        <padding>
+                            <Insets top="30" right="40" bottom="30" left="40"/>
+                        </padding>
+                        
+                        <Label fx:id="titleLabel" text="Complete Your Profile" styleClass="login-title" style="-fx-text-fill: #2E7D32; -fx-font-weight: bold;"/>
+                        <Label fx:id="subtitleLabel" text="To place orders, please fill in the information below." 
+                               styleClass="login-subtitle" style="-fx-text-fill: #757575;" wrapText="true" textAlignment="CENTER"/>
+                        
+                        <Separator maxWidth="1.7976931348623157E308"/>
+                        
+                        <VBox fx:id="addressBox" alignment="CENTER" spacing="5">
+                            <Label fx:id="addressLabel" text="Address *" styleClass="field-label"/>
+                            <TextArea fx:id="addressField" promptText="Delivery address (Max 255 characters)" maxWidth="1.7976931348623157E308" prefHeight="150" wrapText="true" styleClass="mfx-text-field"/>
+                        </VBox>
+                        
+                        <VBox fx:id="phoneBox" alignment="CENTER" spacing="5">
+                            <Label fx:id="phoneLabel" text="Phone *" styleClass="field-label"/>
+                            <MFXTextField fx:id="phoneField" promptText="5XX XXX XX XX" maxWidth="1.7976931348623157E308" floatMode="BORDER"/>
+                        </VBox>
+                        
+                        <VBox fx:id="emailBox" alignment="CENTER" spacing="5">
+                            <Label fx:id="emailLabel" text="Email *" styleClass="field-label"/>
+                            <MFXTextField fx:id="emailField" promptText="email@example.com" maxWidth="1.7976931348623157E308" floatMode="BORDER"/>
+                        </VBox>
+                        
+                        <Region prefHeight="10"/>
+                        
+                        <MFXButton fx:id="saveButton" text="Save and Continue" onAction="#handleSave"
+                                   maxWidth="1.7976931348623157E308" prefHeight="50" styleClass="login-button"/>
+                        
+                        <Label fx:id="errorLabel" text="" styleClass="error-label" visible="false"/>
+                    </VBox>
+                </StackPane>
+            </content>
+        </ScrollPane>
+    </center>
+</BorderPane>

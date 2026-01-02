@@ -3,6 +3,16 @@ package com.greengrocer.utils;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+/**
+ * Custom implementation of the Argon2id password hashing algorithm.
+ * <p>
+ * Argon2id is a hybrid of Argon2i and Argon2d, providing resistance against
+ * both
+ * side-channel attacks and GPU cracking attacks.
+ * </p>
+ * 
+ * @author Burak Özevin
+ */
 public class Argon2id {
 
     private static final int ARGON2_VERSION_13 = 0x13;
@@ -10,6 +20,20 @@ public class Argon2id {
     private static final int BLOCK_SIZE = 1024;
     private static final int QWORDS_IN_BLOCK = BLOCK_SIZE / 8;
 
+    /**
+     * Computes the Argon2id hash for the given password and parameters.
+     *
+     * @param iterations  Number of passes over the memory (time cost).
+     * @param memory      Memory size in 1KB blocks (memory cost).
+     * @param parallelism Number of threads/lanes (parallelism cost).
+     * @param password    The password characters.
+     * @param salt        The salt bytes.
+     * @param hashLength  The desired length of the output hash in bytes.
+     * @return The computed hash bytes.
+     * @throws IllegalArgumentException If any parameter is invalid.
+     * 
+     * @author Burak Özevin
+     */
     public byte[] hash(int iterations, int memory, int parallelism, char[] password, byte[] salt, int hashLength) {
         if (iterations < 1)
             throw new IllegalArgumentException("Iterations must be >= 1");
@@ -122,6 +146,18 @@ public class Argon2id {
         return finalHasher.digest();
     }
 
+    /**
+     * Computes the initial hash H0.
+     * 
+     * @param iterations  Number of passes
+     * @param memory      Memory size
+     * @param parallelism Parallelism degree
+     * @param password    Password bytes
+     * @param salt        Salt bytes
+     * @param hashLength  Output hash length
+     * @return The initial hash bytes
+     * @author Burak Özevin
+     */
     private byte[] initialHash(int iterations, int memory, int parallelism, byte[] password, byte[] salt,
             int hashLength) {
         Blake2b blake = new Blake2b(64);
@@ -145,6 +181,13 @@ public class Argon2id {
         return blake.digest();
     }
 
+    /**
+     * Hashes a block of data.
+     * 
+     * @param input The input data block
+     * @return The hashed block
+     * @author Burak Özevin
+     */
     private byte[] hashBlock(byte[] input) {
         // H' with 1024 byte output
         // Blake2b supports max 64 bytes, so Argon2 uses a special construction
@@ -162,6 +205,15 @@ public class Argon2id {
         return block;
     }
 
+    /**
+     * Fills a memory block using Argon2 compression function.
+     * 
+     * @param matrix  The memory matrix
+     * @param currIdx Current block index
+     * @param prevIdx Previous block index
+     * @param refIdx  Reference block index
+     * @author Burak Özevin
+     */
     private void fillBlock(long[][] matrix, int currIdx, int prevIdx, int refIdx) {
         long[] curr = matrix[currIdx];
         long[] prev = matrix[prevIdx];
@@ -178,14 +230,35 @@ public class Argon2id {
         }
     }
 
+    /**
+     * Converts an integer to a 4-byte array (Little Endian).
+     * 
+     * @param v The integer value
+     * @return The byte array
+     * @author Burak Özevin
+     */
     private byte[] intToBytes(int v) {
         return ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(v).array();
     }
 
+    /**
+     * Converts a byte array to a long array (Little Endian).
+     * 
+     * @param src Source byte array
+     * @param dst Destination long array
+     * @author Burak Özevin
+     */
     private void bytesToLongs(byte[] src, long[] dst) {
         ByteBuffer.wrap(src).order(ByteOrder.LITTLE_ENDIAN).asLongBuffer().get(dst);
     }
 
+    /**
+     * Converts a long array to a byte array (Little Endian).
+     * 
+     * @param src Source long array
+     * @param dst Destination byte array
+     * @author Burak Özevin
+     */
     private void longsToBytes(long[] src, byte[] dst) {
         ByteBuffer.wrap(dst).order(ByteOrder.LITTLE_ENDIAN).asLongBuffer().put(src);
     }

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+<?import io.github.palexdev.materialfx.controls.MFXButton?>
+<?import io.github.palexdev.materialfx.controls.MFXTextField?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.greengrocer.controllers.ProductDetailController"
+           styleClass="main-container" prefWidth="1200" prefHeight="800">
+
+    <VBox spacing="20" alignment="TOP_LEFT" styleClass="content-padding">
+        <padding>
+            <Insets top="20" right="40" bottom="40" left="40"/>
+        </padding>
+
+        <!-- Top Bar -->
+        <HBox alignment="CENTER_LEFT" spacing="20">
+            <MFXButton text=" Back" onAction="#goBack" styleClass="back-button">
+                <graphic>
+                    <FontIcon iconLiteral="fas-arrow-left" iconSize="16"/>
+                </graphic>
+            </MFXButton>
+            <Region HBox.hgrow="ALWAYS"/>
+            <MFXButton fx:id="themeToggleBtn" styleClass="icon-button-transparent" text="">
+                <graphic>
+                    <FontIcon iconLiteral="fas-moon" iconSize="20" iconColor="#757575"/>
+                </graphic>
+            </MFXButton>
+        </HBox>
+
+        <HBox spacing="60" alignment="CENTER_LEFT" VBox.vgrow="ALWAYS">
+            <!-- Left: Image -->
+            <StackPane styleClass="product-detail-image-container" minWidth="400" maxWidth="500" prefWidth="450">
+                <ImageView fx:id="productImage" fitWidth="400" fitHeight="400" preserveRatio="true"/>
+            </StackPane>
+
+            <!-- Right: Details -->
+            <VBox spacing="20" HBox.hgrow="ALWAYS" alignment="TOP_LEFT">
+                <VBox spacing="5">
+                    <Label fx:id="productName" styleClass="product-detail-name" wrapText="true"/>
+                    <Label fx:id="productPrice" styleClass="product-detail-price"/>
+                </VBox>
+                
+                <VBox spacing="10">
+                    <Label text="Product Description" styleClass="section-subtitle"/>
+                    <Label fx:id="productDescription" styleClass="product-detail-description" wrapText="true"/>
+                </VBox>
+                
+                <Region VBox.vgrow="ALWAYS"/>
+                
+                <VBox spacing="15" styleClass="product-detail-actions">
+                    <Label fx:id="stockLabel" styleClass="product-stock"/>
+                    
+                    <VBox spacing="5">
+                        <Label text="Quantity:" styleClass="field-label"/>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <MFXTextField fx:id="quantityField" floatMode="DISABLED" prefWidth="120" text="1"/>
+                            <Label fx:id="unitLabel" styleClass="field-label" style="-fx-font-size: 16px;"/>
+                        </HBox>
+                    </VBox>
+                    
+                    <MFXButton text=" Add to Cart" onAction="#addToCart" styleClass="primary-button" prefWidth="250" prefHeight="45">
+                        <graphic>
+                            <FontIcon iconLiteral="fas-shopping-cart" iconColor="white" iconSize="18"/>
+                        </graphic>
+                    </MFXButton>
+                </VBox>
+            </VBox>
+        </HBox>
+    </VBox>
+</StackPane>

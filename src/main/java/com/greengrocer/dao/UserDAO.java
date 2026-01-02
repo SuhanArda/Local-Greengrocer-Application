@@ -11,24 +11,48 @@ import java.util.Optional;
 import com.greengrocer.utils.Argon2Hasher;
 
 /**
- * Data Access Object for User operations.
+ * Data Access Object for {@link User} operations.
+ * <p>
+ * Manages all database interactions related to users, including authentication,
+ * registration, profile updates, and role-based retrieval.
+ * </p>
+ * 
+ * @author Ramazan Birkan Öztürk
  */
 public class UserDAO {
-    private final DBConnection dbAdapter;
+    /** The database adapter for connection management. */
+    private final DatabaseAdapter dbAdapter;
 
+    /** The Argon2 hasher for password security. */
     private final Argon2Hasher hasher = new Argon2Hasher();
 
+    /**
+     * Default constructor.
+     * <p>
+     * Initializes the {@link DatabaseAdapter} instance.
+     * </p>
+     * 
+     * @author Ramazan Birkan Öztürk
+     */
     public UserDAO() {
-        this.dbAdapter = DBConnection.getInstance();
+        this.dbAdapter = DatabaseAdapter.getInstance();
     }
 
     /**
-     * Authenticate a user by username and password.
+     * Authenticates a user using their username and password.
+     * <p>
+     * Verifies the provided credentials against the stored hash in the database.
+     * Only active users can be authenticated.
+     * </p>
+     *
+     * @param username The username of the user.
+     * @param password The plain text password to verify.
+     * @return An {@link Optional} containing the {@link User} if authentication
+     *         succeeds;
+     *         {@link Optional#empty()} otherwise.
+     * @throws SQLException If a database access error occurs.
      * 
-     * @param username the username
-     * @param password the password
-     * @return Optional containing the user if authentication successful
-     * @throws SQLException if a database access error occurs
+     * @author Ramazan Birkan Öztürk
      */
     public Optional<User> authenticate(String username, String password) throws SQLException {
         String sql = "SELECT * FROM UserInfo WHERE username = ? AND is_active = TRUE";
@@ -47,11 +71,14 @@ public class UserDAO {
     }
 
     /**
-     * Find a user by ID.
+     * Finds a user by their unique identifier.
+     *
+     * @param id The unique identifier of the user.
+     * @return An {@link Optional} containing the {@link User} if found;
+     *         {@link Optional#empty()} otherwise.
+     * @throws SQLException If a database access error occurs.
      * 
-     * @param id the user ID
-     * @return Optional containing the user if found
-     * @throws SQLException if a database access error occurs
+     * @author Ramazan Birkan Öztürk
      */
     public Optional<User> findById(int id) throws SQLException {
         String sql = "SELECT * FROM UserInfo WHERE id = ?";
@@ -67,11 +94,14 @@ public class UserDAO {
     }
 
     /**
-     * Find a user by username.
+     * Finds a user by their username.
+     *
+     * @param username The username to search for.
+     * @return An {@link Optional} containing the {@link User} if found;
+     *         {@link Optional#empty()} otherwise.
+     * @throws SQLException If a database access error occurs.
      * 
-     * @param username the username
-     * @return Optional containing the user if found
-     * @throws SQLException if a database access error occurs
+     * @author Ramazan Birkan Öztürk
      */
     public Optional<User> findByUsername(String username) throws SQLException {
         String sql = "SELECT * FROM UserInfo WHERE username = ?";
@@ -87,11 +117,16 @@ public class UserDAO {
     }
 
     /**
-     * Find all users by role.
+     * Retrieves all active users with a specific role.
+     * <p>
+     * Results are sorted alphabetically by full name.
+     * </p>
+     *
+     * @param role The {@link UserRole} to filter by.
+     * @return A {@link List} of {@link User} objects with the specified role.
+     * @throws SQLException If a database access error occurs.
      * 
-     * @param role the user role
-     * @return list of users with the specified role
-     * @throws SQLException if a database access error occurs
+     * @author Ramazan Birkan Öztürk
      */
     public List<User> findByRole(UserRole role) throws SQLException {
         List<User> users = new ArrayList<>();
@@ -108,31 +143,52 @@ public class UserDAO {
     }
 
     /**
-     * Get all carriers.
+     * Retrieves all active carriers.
+     * <p>
+     * Convenience method for {@code findByRole(UserRole.CARRIER)}.
+     * </p>
+     *
+     * @return A {@link List} of carrier users.
+     * @throws SQLException If a database access error occurs.
      * 
-     * @return list of carrier users
-     * @throws SQLException if a database access error occurs
+     * @author Ramazan Birkan Öztürk
      */
     public List<User> getAllCarriers() throws SQLException {
         return findByRole(UserRole.CARRIER);
     }
 
     /**
-     * Get all customers.
+     * Retrieves all active customers.
+     * <p>
+     * Convenience method for {@code findByRole(UserRole.CUSTOMER)}.
+     * </p>
+     *
+     * @return A {@link List} of customer users.
+     * @throws SQLException If a database access error occurs.
      * 
-     * @return list of customer users
-     * @throws SQLException if a database access error occurs
+     * @author Ramazan Birkan Öztürk
      */
     public List<User> getAllCustomers() throws SQLException {
         return findByRole(UserRole.CUSTOMER);
     }
 
     /**
-     * Create a new user.
+     * Creates a new user in the database.
+     * <p>
+     * This method:
+     * </p>
+     * <ul>
+     * <li>Hashes the password using Argon2id before storage.</li>
+     * <li>Inserts user details into {@code UserInfo}.</li>
+     * <li>Handles role-specific fields (e.g., loyalty points for customers).</li>
+     * <li>Retrieves and sets the generated user ID.</li>
+     * </ul>
+     *
+     * @param user The {@link User} object to create.
+     * @return The updated {@link User} object with its new database ID.
+     * @throws SQLException If a database access error occurs.
      * 
-     * @param user the user to create
-     * @return the created user with ID set
-     * @throws SQLException if a database access error occurs
+     * @author Ramazan Birkan Öztürk
      */
     public User create(User user) throws SQLException {
         String sql = "INSERT INTO UserInfo (username, password, role, full_name, address, phone, email, loyalty_points, total_orders, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -171,11 +227,59 @@ public class UserDAO {
     }
 
     /**
-     * Update an existing user.
+     * Creates a new carrier with a temporary (unhashed) password.
+     * <p>
+     * <b>Security Note:</b> The password is stored in plain text to allow the
+     * carrier
+     * to log in for the first time. The system enforces a password change upon
+     * first login.
+     * </p>
+     *
+     * @param carrier The {@link User} object representing the carrier.
+     * @return The updated {@link User} object with its new database ID.
+     * @throws SQLException If a database access error occurs.
      * 
-     * @param user the user to update
-     * @return true if update successful
-     * @throws SQLException if a database access error occurs
+     * @author Ramazan Birkan Öztürk
+     */
+    public User createCarrierWithTempPassword(User carrier) throws SQLException {
+        String sql = "INSERT INTO UserInfo (username, password, role, full_name, address, phone, email, loyalty_points, total_orders, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = dbAdapter.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            // Store password WITHOUT hashing for temp credentials
+            stmt.setString(1, carrier.getUsername());
+            stmt.setString(2, carrier.getPassword()); // Not hashed!
+            stmt.setString(3, carrier.getRole().getValue());
+            stmt.setString(4, carrier.getFullName());
+            stmt.setString(5, carrier.getAddress());
+            stmt.setString(6, carrier.getPhone());
+            stmt.setString(7, carrier.getEmail());
+            stmt.setInt(8, 0);
+            stmt.setInt(9, 0);
+            stmt.setBoolean(10, carrier.isActive());
+            stmt.executeUpdate();
+
+            ResultSet rs = stmt.getGeneratedKeys();
+            if (rs.next()) {
+                carrier.setId(rs.getInt(1));
+            }
+        }
+        return carrier;
+    }
+
+    /**
+     * Updates an existing user's profile information.
+     * <p>
+     * Automatically hashes the password if it has been changed (detects plain text
+     * vs hash).
+     * Updates all user fields including role-specific data.
+     * </p>
+     *
+     * @param user The {@link User} object with updated information.
+     * @return {@code true} if the update was successful; {@code false} otherwise.
+     * @throws SQLException If a database access error occurs.
+     * 
+     * @author Ramazan Birkan Öztürk
      */
     public boolean update(User user) throws SQLException {
         String sql = "UPDATE UserInfo SET username = ?, password = ?, role = ?, full_name = ?, address = ?, phone = ?, email = ?, loyalty_points = ?, total_orders = ?, is_active = ? WHERE id = ?";
@@ -211,12 +315,17 @@ public class UserDAO {
     }
 
     /**
-     * Update a user's password.
+     * Updates a user's password.
+     * <p>
+     * Hashes the new password before storing it in the database.
+     * </p>
+     *
+     * @param userId      The unique identifier of the user.
+     * @param newPassword The new plain text password.
+     * @return {@code true} if the update was successful; {@code false} otherwise.
+     * @throws SQLException If a database access error occurs.
      * 
-     * @param userId      the user ID
-     * @param newPassword the new password (plain text)
-     * @return true if update successful
-     * @throws SQLException if a database access error occurs
+     * @author Ramazan Birkan Öztürk
      */
     public boolean updatePassword(int userId, String newPassword) throws SQLException {
         String sql = "UPDATE UserInfo SET password = ? WHERE id = ?";
@@ -232,11 +341,104 @@ public class UserDAO {
     }
 
     /**
-     * Deactivate a user (soft delete).
+     * Updates a carrier's credentials (username and password) upon first login.
+     * <p>
+     * This finalizes the carrier's account setup by replacing the temporary
+     * credentials
+     * with permanent, hashed ones.
+     * </p>
+     *
+     * @param userId      The unique identifier of the carrier.
+     * @param newUsername The new username chosen by the carrier.
+     * @param newPassword The new plain text password chosen by the carrier.
+     * @return {@code true} if the update was successful; {@code false} otherwise.
+     * @throws SQLException If a database access error occurs.
      * 
-     * @param id the user ID
-     * @return true if deactivation successful
-     * @throws SQLException if a database access error occurs
+     * @author Ramazan Birkan Öztürk
+     */
+    public boolean updateCarrierCredentials(int userId, String newUsername, String newPassword) throws SQLException {
+        String sql = "UPDATE UserInfo SET username = ?, password = ? WHERE id = ?";
+        try (Connection conn = dbAdapter.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            String hashedPassword = hasher.hash(newPassword.toCharArray());
+            stmt.setString(1, newUsername);
+            stmt.setString(2, hashedPassword);
+            stmt.setInt(3, userId);
+
+            return stmt.executeUpdate() > 0;
+        }
+    }
+
+    /**
+     * Checks if a carrier is logging in for the first time.
+     * <p>
+     * Determines this by checking if the stored password is NOT hashed (i.e., does
+     * not
+     * start with the Argon2id prefix).
+     * </p>
+     *
+     * @param user The {@link User} object to check.
+     * @return {@code true} if the user is a carrier with a temporary password;
+     *         {@code false} otherwise.
+     * 
+     * @author Ramazan Birkan Öztürk
+     */
+    public boolean isCarrierFirstLogin(User user) {
+        if (user == null || user.getRole() != UserRole.CARRIER) {
+            return false;
+        }
+        // Check if password is hashed (Argon2id hashes start with $argon2id$)
+        return user.getPassword() != null && !user.getPassword().startsWith("$argon2id$");
+    }
+
+    /**
+     * Authenticates a carrier using a temporary (unhashed) password.
+     * <p>
+     * Used specifically for the first-time login flow where the password is stored
+     * in plain text.
+     * </p>
+     *
+     * @param username The username of the carrier.
+     * @param password The plain text temporary password.
+     * @return An {@link Optional} containing the {@link User} if authentication
+     *         succeeds;
+     *         {@link Optional#empty()} otherwise.
+     * @throws SQLException If a database access error occurs.
+     * 
+     * @author Ramazan Birkan Öztürk
+     */
+    public Optional<User> authenticateCarrierTemp(String username, String password) throws SQLException {
+        String sql = "SELECT * FROM UserInfo WHERE username = ? AND role = 'carrier' AND is_active = TRUE";
+        try (Connection conn = dbAdapter.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, username);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                User user = mapResultSetToUser(rs);
+                // Check if password matches directly (unhashed temporary password)
+                if (!user.getPassword().startsWith("$argon2id$") &&
+                        user.getPassword().equals(password)) {
+                    return Optional.of(user);
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Deactivates a user account (soft delete).
+     * <p>
+     * Sets {@code is_active} to {@code FALSE}, preventing future logins but
+     * preserving data.
+     * </p>
+     *
+     * @param id The unique identifier of the user.
+     * @return {@code true} if the deactivation was successful; {@code false}
+     *         otherwise.
+     * @throws SQLException If a database access error occurs.
+     * 
+     * @author Ramazan Birkan Öztürk
      */
     public boolean deactivate(int id) throws SQLException {
         String sql = "UPDATE UserInfo SET is_active = FALSE WHERE id = ?";
@@ -248,11 +450,16 @@ public class UserDAO {
     }
 
     /**
-     * Increment the total orders count for a user.
+     * Increments the total number of orders for a user.
+     * <p>
+     * Typically used for customers to track order history statistics.
+     * </p>
+     *
+     * @param userId The unique identifier of the user.
+     * @return {@code true} if the update was successful; {@code false} otherwise.
+     * @throws SQLException If a database access error occurs.
      * 
-     * @param userId the user ID
-     * @return true if update successful
-     * @throws SQLException if a database access error occurs
+     * @author Ramazan Birkan Öztürk
      */
     public boolean incrementTotalOrders(int userId) throws SQLException {
         String sql = "UPDATE UserInfo SET total_orders = total_orders + 1 WHERE id = ?";
@@ -264,10 +471,16 @@ public class UserDAO {
     }
 
     /**
-     * Get the owner user.
+     * Retrieves the system owner.
+     * <p>
+     * Assumes there is only one owner in the system.
+     * </p>
+     *
+     * @return An {@link Optional} containing the {@link User} (Owner) if found;
+     *         {@link Optional#empty()} otherwise.
+     * @throws SQLException If a database access error occurs.
      * 
-     * @return Optional containing the owner
-     * @throws SQLException if a database access error occurs
+     * @author Ramazan Birkan Öztürk
      */
     public Optional<User> getOwner() throws SQLException {
         List<User> owners = findByRole(UserRole.OWNER);
@@ -275,12 +488,16 @@ public class UserDAO {
     }
 
     /**
-     * Check if a phone number already exists, excluding a specific user ID.
+     * Checks if a phone number is already in use by another user.
+     *
+     * @param phone         The phone number to check.
+     * @param excludeUserId The ID of the user to exclude from the check (e.g., the
+     *                      user being updated).
+     * @return {@code true} if the phone number exists for another user;
+     *         {@code false} otherwise.
+     * @throws SQLException If a database access error occurs.
      * 
-     * @param phone         the phone number to check
-     * @param excludeUserId the user ID to exclude from the check
-     * @return true if exists, false otherwise
-     * @throws SQLException if a database access error occurs
+     * @author Ramazan Birkan Öztürk
      */
     public boolean isPhoneExists(String phone, int excludeUserId) throws SQLException {
         String sql = "SELECT 1 FROM UserInfo WHERE phone = ? AND id != ?";
@@ -294,12 +511,15 @@ public class UserDAO {
     }
 
     /**
-     * Check if an email already exists, excluding a specific user ID.
+     * Checks if an email address is already in use by another user.
+     *
+     * @param email         The email address to check.
+     * @param excludeUserId The ID of the user to exclude from the check.
+     * @return {@code true} if the email exists for another user; {@code false}
+     *         otherwise.
+     * @throws SQLException If a database access error occurs.
      * 
-     * @param email         the email to check
-     * @param excludeUserId the user ID to exclude from the check
-     * @return true if exists, false otherwise
-     * @throws SQLException if a database access error occurs
+     * @author Ramazan Birkan Öztürk
      */
     public boolean isEmailExists(String email, int excludeUserId) throws SQLException {
         String sql = "SELECT 1 FROM UserInfo WHERE email = ? AND id != ?";
@@ -313,7 +533,17 @@ public class UserDAO {
     }
 
     /**
-     * Map a ResultSet row to a User object.
+     * Maps a {@link ResultSet} row to a {@link User} object.
+     * <p>
+     * Instantiates the correct subclass (Customer, Carrier, or Owner) based on the
+     * role.
+     * </p>
+     *
+     * @param rs The {@link ResultSet} positioned at the current row.
+     * @return The mapped {@link User} object.
+     * @throws SQLException If a database access error occurs.
+     * 
+     * @author Ramazan Birkan Öztürk
      */
     private User mapResultSetToUser(ResultSet rs) throws SQLException {
         UserRole role = UserRole.fromString(rs.getString("role"));

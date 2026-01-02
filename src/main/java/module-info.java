@@ -2,11 +2,14 @@ module com.greengrocer {
     requires javafx.controls;
     requires javafx.fxml;
     requires javafx.graphics;
+    requires javafx.web;
     requires MaterialFX;
     requires java.sql;
     requires kernel;
     requires layout;
     requires io;
+    requires org.kordamp.ikonli.javafx;
+    requires org.kordamp.ikonli.fontawesome5;
 
     opens com.greengrocer to javafx.fxml;
     opens com.greengrocer.controllers to javafx.fxml;

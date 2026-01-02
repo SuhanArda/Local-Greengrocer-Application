@@ -2,8 +2,9 @@
 -- MySQL Database: greengrocer_db
 -- Connection: myuser@localhost / 1234
 
--- Create database
-CREATE DATABASE IF NOT EXISTS greengrocer_db;
+-- Drop and recreate database for clean re-runs
+DROP DATABASE IF EXISTS greengrocer_db;
+CREATE DATABASE greengrocer_db;
 USE greengrocer_db;
 
 -- Create user and grant privileges
@@ -65,7 +66,7 @@ CREATE TABLE IF NOT EXISTS OrderInfo (
     discount_amount DECIMAL(10, 2) DEFAULT 0,
     total_cost DECIMAL(10, 2) NOT NULL,
     coupon_code VARCHAR(50),
-    invoice LONGBLOB,
+    invoice LONGTEXT,
     notes TEXT,
     FOREIGN KEY (customer_id) REFERENCES UserInfo(id),
     FOREIGN KEY (carrier_id) REFERENCES UserInfo(id)
@@ -121,6 +122,20 @@ CREATE TABLE IF NOT EXISTS Coupons (
 );
 
 -- =============================================
+-- CUSTOMER COUPON USAGE TABLE
+-- =============================================
+CREATE TABLE IF NOT EXISTS CustomerCouponUsage (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    coupon_id INT NOT NULL,
+    uses_remaining INT NOT NULL,
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES UserInfo(id),
+    FOREIGN KEY (coupon_id) REFERENCES Coupons(id),
+    UNIQUE KEY unique_customer_coupon (customer_id, coupon_id)
+);
+
+-- =============================================
 -- CARRIER RATINGS TABLE
 -- =============================================
 CREATE TABLE IF NOT EXISTS CarrierRatings (
@@ -154,67 +169,79 @@ INSERT INTO UserInfo (username, password, role, full_name, address, phone, email
 ('cust', '$argon2id$v=19$m=65536,t=3,p=1$HjB2q0lcIGARQbllAZHQ5g==$uhxlHn2Xj17rifTAAoKbR1eQiMPP/60sL0SUn7BS28g=', 'customer', 'Test Customer', 'Istanbul, Turkey', '555-0001', 'customer@test.com'),
 ('carr', '$argon2id$v=19$m=65536,t=3,p=1$Un7JvsE0ofDbHeJ1NspLSw==$um1YuxIzHHfg8Q6/0gdcyXkJHpR9Iiaw+hOU+k7+g3k=', 'carrier', 'Test Carrier', 'Istanbul, Turkey', '555-0002', 'carrier@test.com'),
 ('own', '$argon2id$v=19$m=65536,t=3,p=1$Q7FYdcDMxVfPOCaFgttknQ==$2T/b+wK67N/aP5TqJ5ggWQbCpH3ueQMPm97y/QYf+wY=', 'owner', 'Store Owner', 'Istanbul, Turkey', '555-0003', 'owner@test.com'),
-('customer1', '$argon2id$v=19$m=65536,t=3,p=1$8/UypHgH3oPBDvDH5Ngo/Q==$06Ln52oBL2xGi0w+elRlbwkXtaYW5MqYANJoPkPdxpo=', 'customer', 'Ahmet Yilmaz', 'Kadikoy, Istanbul', '555-1001', 'ahmet@email.com'),
-('customer2', '$argon2id$v=19$m=65536,t=3,p=1$8/UypHgH3oPBDvDH5Ngo/Q==$06Ln52oBL2xGi0w+elRlbwkXtaYW5MqYANJoPkPdxpo=', 'customer', 'Ayse Demir', 'Besiktas, Istanbul', '555-1002', 'ayse@email.com'),
-('customer3', '$argon2id$v=19$m=65536,t=3,p=1$8/UypHgH3oPBDvDH5Ngo/Q==$06Ln52oBL2xGi0w+elRlbwkXtaYW5MqYANJoPkPdxpo=', 'customer', 'Mehmet Kaya', 'Uskudar, Istanbul', '555-1003', 'mehmet@email.com'),
-('carrier1', '$argon2id$v=19$m=65536,t=3,p=1$8/UypHgH3oPBDvDH5Ngo/Q==$06Ln52oBL2xGi0w+elRlbwkXtaYW5MqYANJoPkPdxpo=', 'carrier', 'Ali Ozturk', 'Fatih, Istanbul', '555-2001', 'ali@email.com'),
-('carrier2', '$argon2id$v=19$m=65536,t=3,p=1$8/UypHgH3oPBDvDH5Ngo/Q==$06Ln52oBL2xGi0w+elRlbwkXtaYW5MqYANJoPkPdxpo=', 'carrier', 'Veli Celik', 'Beyoglu, Istanbul', '555-2002', 'veli@email.com');
+('customer1', '$argon2id$v=19$m=65536,t=3,p=1$8/UypHgH3oPBDvDH5Ngo/Q==$06Ln52oBL2xGi0w+elRlbwkXtaYW5MqYANJoPkPdxpo=', 'customer', 'John Smith', 'Kadikoy, Istanbul', '555-1001', 'john@email.com'),
+('customer2', '$argon2id$v=19$m=65536,t=3,p=1$8/UypHgH3oPBDvDH5Ngo/Q==$06Ln52oBL2xGi0w+elRlbwkXtaYW5MqYANJoPkPdxpo=', 'customer', 'Jane Doe', 'Besiktas, Istanbul', '555-1002', 'jane@email.com'),
+('customer3', '$argon2id$v=19$m=65536,t=3,p=1$8/UypHgH3oPBDvDH5Ngo/Q==$06Ln52oBL2xGi0w+elRlbwkXtaYW5MqYANJoPkPdxpo=', 'customer', 'Robert Johnson', 'Uskudar, Istanbul', '555-1003', 'robert@email.com'),
+('carrier1', '$argon2id$v=19$m=65536,t=3,p=1$8/UypHgH3oPBDvDH5Ngo/Q==$06Ln52oBL2xGi0w+elRlbwkXtaYW5MqYANJoPkPdxpo=', 'carrier', 'Mike Wilson', 'Fatih, Istanbul', '555-2001', 'mike@email.com'),
+('carrier2', '$argon2id$v=19$m=65536,t=3,p=1$8/UypHgH3oPBDvDH5Ngo/Q==$06Ln52oBL2xGi0w+elRlbwkXtaYW5MqYANJoPkPdxpo=', 'carrier', 'David Brown', 'Beyoglu, Istanbul', '555-2002', 'david@email.com');
 
 -- =============================================
 -- INSERT VEGETABLES (12+)
 -- =============================================
 INSERT INTO ProductInfo (name, type, price, stock, threshold, description) VALUES
-('Patates', 'vegetable', 8.50, 100.0, 10.0, 'Taze yerli patates'),
-('Domates', 'vegetable', 12.00, 80.0, 8.0, 'Organik salkım domates'),
-('Salatalık', 'vegetable', 10.00, 60.0, 6.0, 'Taze çıtır salatalık'),
-('Biber', 'vegetable', 15.00, 50.0, 5.0, 'Dolmalık yeşil biber'),
-('Patlıcan', 'vegetable', 14.00, 45.0, 5.0, 'Kemer patlıcan'),
-('Soğan', 'vegetable', 7.00, 120.0, 15.0, 'Kuru soğan'),
-('Havuç', 'vegetable', 9.00, 70.0, 7.0, 'Taze havuç'),
-('Kabak', 'vegetable', 11.00, 40.0, 4.0, 'Sakız kabağı'),
-('Ispanak', 'vegetable', 18.00, 30.0, 3.0, 'Taze ıspanak'),
-('Marul', 'vegetable', 8.00, 35.0, 4.0, 'Kıvırcık marul'),
-('Brokoli', 'vegetable', 22.00, 25.0, 3.0, 'Taze brokoli'),
-('Lahana', 'vegetable', 6.00, 50.0, 5.0, 'Beyaz lahana'),
-('Sarımsak', 'vegetable', 45.00, 20.0, 2.0, 'Yerli sarımsak'),
-('Turp', 'vegetable', 7.50, 40.0, 4.0, 'Kırmızı turp'),
-('Pırasa', 'vegetable', 12.00, 35.0, 4.0, 'Taze pırasa');
+('Potatoes', 'vegetable', 8.50, 100.0, 10.0, 'Fresh local potatoes'),
+('Tomatoes', 'vegetable', 12.00, 80.0, 8.0, 'Organic cluster tomatoes'),
+('Cucumbers', 'vegetable', 10.00, 60.0, 6.0, 'Fresh crispy cucumbers'),
+('Peppers', 'vegetable', 15.00, 50.0, 5.0, 'Green bell peppers'),
+('Eggplant', 'vegetable', 14.00, 45.0, 5.0, 'Italian eggplant'),
+('Onions', 'vegetable', 7.00, 120.0, 15.0, 'Yellow onions'),
+('Carrots', 'vegetable', 9.00, 70.0, 7.0, 'Fresh carrots'),
+('Zucchini', 'vegetable', 11.00, 40.0, 4.0, 'Green zucchini'),
+('Spinach', 'vegetable', 18.00, 30.0, 3.0, 'Fresh spinach'),
+('Lettuce', 'vegetable', 8.00, 35.0, 4.0, 'Romaine lettuce'),
+('Broccoli', 'vegetable', 22.00, 25.0, 3.0, 'Fresh broccoli'),
+('Cabbage', 'vegetable', 6.00, 50.0, 5.0, 'White cabbage'),
+('Garlic', 'vegetable', 45.00, 20.0, 2.0, 'Local garlic'),
+('Radishes', 'vegetable', 7.50, 40.0, 4.0, 'Red radishes'),
+('Leeks', 'vegetable', 12.00, 35.0, 4.0, 'Fresh leeks');
 
 -- =============================================
 -- INSERT FRUITS (12+)
 -- =============================================
 INSERT INTO ProductInfo (name, type, price, stock, threshold, description) VALUES
-('Elma', 'fruit', 15.00, 90.0, 10.0, 'Amasya elması'),
-('Armut', 'fruit', 18.00, 60.0, 6.0, 'Deveci armudu'),
-('Portakal', 'fruit', 12.00, 100.0, 12.0, 'Finike portakalı'),
-('Mandalina', 'fruit', 14.00, 80.0, 8.0, 'Bodrum mandalinası'),
-('Muz', 'fruit', 35.00, 50.0, 5.0, 'İthal muz'),
-('Üzüm', 'fruit', 25.00, 40.0, 4.0, 'Sultani üzüm'),
-('Çilek', 'fruit', 45.00, 20.0, 2.0, 'Taze çilek'),
-('Karpuz', 'fruit', 8.00, 200.0, 20.0, 'Diyarbakır karpuzu'),
-('Kavun', 'fruit', 10.00, 80.0, 8.0, 'Kırkağaç kavunu'),
-('Şeftali', 'fruit', 28.00, 35.0, 4.0, 'Bursa şeftalisi'),
-('Kayısı', 'fruit', 32.00, 30.0, 3.0, 'Malatya kayısısı'),
-('Kiraz', 'fruit', 55.00, 25.0, 3.0, 'Napolyon kiraz'),
-('Erik', 'fruit', 20.00, 40.0, 4.0, 'Can eriği'),
-('Nar', 'fruit', 18.00, 45.0, 5.0, 'Hicaz narı'),
-('Limon', 'fruit', 16.00, 70.0, 7.0, 'Meyer limon');
+('Apples', 'fruit', 15.00, 90.0, 10.0, 'Amasya apples'),
+('Pears', 'fruit', 18.00, 60.0, 6.0, 'Deveci pears'),
+('Oranges', 'fruit', 12.00, 100.0, 12.0, 'Finike oranges'),
+('Mandarins', 'fruit', 14.00, 80.0, 8.0, 'Bodrum mandarins'),
+('Bananas', 'fruit', 35.00, 50.0, 5.0, 'Imported bananas'),
+('Grapes', 'fruit', 25.00, 40.0, 4.0, 'Sultana grapes'),
+('Strawberries', 'fruit', 45.00, 20.0, 2.0, 'Fresh strawberries'),
+('Watermelons', 'fruit', 8.00, 200.0, 20.0, 'Diyarbakir watermelons'),
+('Melons', 'fruit', 10.00, 80.0, 8.0, 'Kirkagac melons'),
+('Peaches', 'fruit', 28.00, 35.0, 4.0, 'Bursa peaches'),
+('Apricots', 'fruit', 32.00, 30.0, 3.0, 'Malatya apricots'),
+('Cherries', 'fruit', 55.00, 25.0, 3.0, 'Napoleon cherries'),
+('Plums', 'fruit', 20.00, 40.0, 4.0, 'Can plums'),
+('Pomegranates', 'fruit', 18.00, 45.0, 5.0, 'Hicaz pomegranates'),
+('Lemons', 'fruit', 16.00, 70.0, 7.0, 'Meyer lemons');
 
 -- =============================================
 -- INSERT LOYALTY SETTINGS
 -- =============================================
 INSERT INTO LoyaltySettings (min_orders, discount_percent, description) VALUES
-(5, 5.00, '5 ve üzeri sipariş için %5 indirim'),
-(10, 10.00, '10 ve üzeri sipariş için %10 indirim'),
-(20, 15.00, '20 ve üzeri sipariş için %15 indirim');
+(5, 5.00, '5% discount for 5 or more orders'),
+(10, 10.00, '10% discount for 10 or more orders'),
+(20, 15.00, '15% discount for 20 or more orders');
 
 -- =============================================
 -- INSERT SAMPLE COUPONS
 -- =============================================
 INSERT INTO Coupons (code, discount_percent, min_cart_value, max_uses, valid_until) VALUES
-('HOSGELDIN', 10.00, 50.00, 100, DATE_ADD(NOW(), INTERVAL 30 DAY)),
-('YAZ2024', 15.00, 100.00, 50, DATE_ADD(NOW(), INTERVAL 60 DAY)),
-('SADIK', 20.00, 150.00, 25, DATE_ADD(NOW(), INTERVAL 90 DAY));
+('WELCOME', 10.00, 50.00, 100, DATE_ADD(NOW(), INTERVAL 30 DAY)),
+('SUMMER2024', 15.00, 100.00, 50, DATE_ADD(NOW(), INTERVAL 60 DAY)),
+('LOYAL', 20.00, 150.00, 25, DATE_ADD(NOW(), INTERVAL 90 DAY));
+
+-- =============================================
+-- INSERT SAMPLE CUSTOMER COUPON USAGE
+-- =============================================
+-- customer_id 1 (cust) has WELCOME (3 uses) and SUMMER2024 (2 uses)
+-- customer_id 4 (customer1) has LOYAL (5 uses)
+INSERT INTO CustomerCouponUsage (customer_id, coupon_id, uses_remaining) VALUES
+(1, 1, 3),
+(1, 2, 2),
+(4, 3, 5),
+(5, 1, 1),
+(6, 2, 4);
 
 -- =============================================
 -- INSERT SAMPLE ORDERS (for testing)
@@ -229,30 +256,30 @@ INSERT INTO OrderInfo (customer_id, carrier_id, requested_delivery_time, actual_
 -- INSERT SAMPLE ORDER ITEMS
 -- =============================================
 INSERT INTO OrderItems (order_id, product_id, product_name, amount, unit_price, total_price) VALUES
-(1, 1, 'Patates', 2.5, 8.50, 21.25),
-(1, 2, 'Domates', 1.5, 12.00, 18.00),
-(1, 16, 'Elma', 2.0, 15.00, 30.00),
-(2, 3, 'Salatalık', 1.0, 10.00, 10.00),
-(2, 4, 'Biber', 2.0, 15.00, 30.00),
-(2, 17, 'Armut', 3.0, 18.00, 54.00),
-(3, 5, 'Patlıcan', 1.5, 14.00, 21.00),
-(3, 6, 'Soğan', 3.0, 7.00, 21.00),
-(3, 20, 'Muz', 1.0, 35.00, 35.00),
-(4, 7, 'Havuç', 2.0, 9.00, 18.00),
-(4, 8, 'Kabak', 1.5, 11.00, 16.50),
-(4, 21, 'Üzüm', 2.0, 25.00, 50.00);
+(1, 1, 'Potatoes', 2.5, 8.50, 21.25),
+(1, 2, 'Tomatoes', 1.5, 12.00, 18.00),
+(1, 16, 'Apples', 2.0, 15.00, 30.00),
+(2, 3, 'Cucumbers', 1.0, 10.00, 10.00),
+(2, 4, 'Peppers', 2.0, 15.00, 30.00),
+(2, 17, 'Pears', 3.0, 18.00, 54.00),
+(3, 5, 'Eggplant', 1.5, 14.00, 21.00),
+(3, 6, 'Onions', 3.0, 7.00, 21.00),
+(3, 20, 'Bananas', 1.0, 35.00, 35.00),
+(4, 7, 'Carrots', 2.0, 9.00, 18.00),
+(4, 8, 'Zucchini', 1.5, 11.00, 16.50),
+(4, 21, 'Grapes', 2.0, 25.00, 50.00);
 
 -- =============================================
 -- INSERT SAMPLE MESSAGES
 -- =============================================
 INSERT INTO Messages (sender_id, receiver_id, subject, content) VALUES
-(1, 3, 'Teslimat Hakkında', 'Merhaba, siparişimin ne zaman teslim edileceğini öğrenebilir miyim?'),
-(4, 3, 'Ürün Talebi', 'Avokado satışa sunulacak mı?'),
-(5, 3, 'Teşekkür', 'Hizmetiniz için teşekkür ederim, çok memnun kaldım.');
+(1, 3, 'About Delivery', 'Hello, can I learn when my order will be delivered?'),
+(4, 3, 'Product Request', 'Will avocados be available for sale?'),
+(5, 3, 'Thank You', 'Thank you for your service, I am very satisfied.');
 
 -- =============================================
 -- INSERT SAMPLE CARRIER RATINGS
 -- =============================================
 INSERT INTO CarrierRatings (carrier_id, customer_id, order_id, rating, comment) VALUES
-(7, 5, 3, 5, 'Çok hızlı ve nazik teslimat'),
-(8, 6, 4, 4, 'Teslimat zamanında yapıldı');
+(7, 5, 3, 5, 'Very fast and courteous delivery'),
+(8, 6, 4, 4, 'Delivery was made on time');

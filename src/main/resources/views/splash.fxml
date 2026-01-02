@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.control.Label?>
+
+<StackPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.greengrocer.controllers.SplashController"
+            fx:id="rootPane"
+            prefWidth="960.0" prefHeight="540.0"
+            styleClass="splash-background">
+
+    <!-- Container for animations -->
+    <Pane fx:id="animationContainer" />
+
+    <!-- Optional App Title/Logo in center if needed, but requirements just say emojis -->
+    <Label text="Group 06" style="-fx-font-size: 48px; -fx-font-weight: bold; -fx-text-fill: #2E7D32;" />
+
+</StackPane>

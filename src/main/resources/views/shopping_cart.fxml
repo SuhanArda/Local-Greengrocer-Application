@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import io.github.palexdev.materialfx.controls.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.greengrocer.controllers.ShoppingCartController"
+            prefWidth="1100" prefHeight="700" styleClass="cart-root">
+    
+    <!-- Header -->
+    <top>
+        <VBox styleClass="cart-header" spacing="5">
+            <padding><Insets top="30" right="40" bottom="20" left="40"/></padding>
+            <HBox alignment="CENTER_LEFT" spacing="15">
+                <MFXButton text="← Back" onAction="#goBack" styleClass="back-button"/>
+                <Label fx:id="headerTitle" text="Your Cart" styleClass="cart-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <MFXButton fx:id="themeToggleBtn" styleClass="icon-button-transparent" text="">
+                    <graphic>
+                        <org.kordamp.ikonli.javafx.FontIcon iconLiteral="fas-moon" iconSize="20" iconColor="#757575"/>
+                    </graphic>
+                </MFXButton>
+            </HBox>
+            <Label fx:id="itemCountLabel" text="0 Items" styleClass="cart-subtitle"/>
+        </VBox>
+    </top>
+    
+    <!-- Main Content -->
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="cart-global-scroll" pannable="true" hbarPolicy="NEVER" fitToHeight="true">
+            <HBox spacing="30" styleClass="cart-content">
+                <padding><Insets top="20" right="40" bottom="30" left="40"/></padding>
+                
+                <!-- Cart Items List -->
+                <VBox HBox.hgrow="ALWAYS" spacing="0" styleClass="cart-items-container">
+                    <VBox fx:id="cartItemsPane" spacing="0">
+                        <padding><Insets top="0" right="5" bottom="0" left="0"/></padding>
+                    </VBox>
+                    
+                    <!-- Remove All Link -->
+                    <HBox alignment="CENTER_LEFT" styleClass="remove-all-container">
+                        <padding><Insets top="15" right="0" bottom="0" left="0"/></padding>
+                        <Label fx:id="removeAllLink" text="🗑️ Remove all items" 
+                               styleClass="remove-all-link" onMouseClicked="#clearCart"/>
+                    </HBox>
+                </VBox>
+                
+                <!-- Order Summary Sidebar -->
+                <VBox prefWidth="320" spacing="20" styleClass="cart-summary-panel">
+                    <padding><Insets top="25" right="25" bottom="25" left="25"/></padding>
+                    
+                    <!-- Coupon Section - Modern integrated design -->
+                    <VBox spacing="8">
+                        <HBox styleClass="coupon-container" alignment="CENTER_LEFT">
+                            <TextField fx:id="couponField" promptText="Coupon Code" 
+                                       HBox.hgrow="ALWAYS" styleClass="coupon-text-field"/>
+                            <Label text="Apply" onMouseClicked="#applyCoupon" styleClass="coupon-apply-label"/>
+                        </HBox>
+                        <Label text="🎟️ Select from My Coupons" onMouseClicked="#selectCoupon" styleClass="coupon-select-button"/>
+                    </VBox>
+                    
+                    <Separator styleClass="summary-separator"/>
+                    
+                    <!-- Price Breakdown -->
+                    <VBox spacing="12">
+                        <HBox alignment="CENTER_LEFT">
+                            <Label fx:id="itemCountSummary" text="0 items:" styleClass="summary-label"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="subtotalLabel" text="₺0.00" styleClass="summary-value"/>
+                        </HBox>
+                        
+                        <HBox alignment="CENTER_LEFT">
+                            <Label text="VAT (18%):" styleClass="summary-label"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="vatLabel" text="₺0.00" styleClass="summary-value"/>
+                        </HBox>
+                        
+                        <HBox alignment="CENTER_LEFT">
+                            <Label text="Discount:" styleClass="summary-label"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="discountLabel" text="-₺0.00" styleClass="discount-value"/>
+                        </HBox>
+                    </VBox>
+                    
+                    <Separator styleClass="summary-separator"/>
+                    
+                    <!-- Total -->
+                    <HBox alignment="CENTER_LEFT">
+                        <Label text="Total:" styleClass="total-label"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="totalLabel" text="₺0.00" styleClass="total-value"/>
+                    </HBox>
+                    
+                    <!-- Checkout Button -->
+                    <MFXButton text="Checkout →" onAction="#checkout" 
+                               prefWidth="270" prefHeight="50" styleClass="checkout-button"/>
+                    
+                    <!-- Delivery Info -->
+                    <VBox spacing="10" styleClass="delivery-section">
+                        <Label text="Delivery Information" styleClass="delivery-title"/>
+                        <DatePicker fx:id="deliveryDatePicker" promptText="📅 Select date" prefWidth="270" styleClass="custom-date-picker"/>
+                        <ComboBox fx:id="deliveryTimeCombo" promptText="🕐 Select time" prefWidth="270" styleClass="custom-combo-box"/>
+                    </VBox>
+                    
+                    <!-- Delivery Note -->
+                    <HBox spacing="10" alignment="CENTER_LEFT" styleClass="delivery-note">
+                        <Label text="🚚" styleClass="delivery-icon"/>
+                        <VBox spacing="2">
+                            <Label text="Estimated Delivery" styleClass="delivery-note-title"/>
+                            <Label fx:id="deliveryEstimate" text="Tomorrow, at your selected time" styleClass="delivery-note-text"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </HBox>
+        </ScrollPane>
+    </center>
+</BorderPane>
